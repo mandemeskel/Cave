@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+    <meta charset=utf-8 />
+    
+    <title>Cave</title>
+    </head>
+    
+    <body style="background-color:black;">
+      
+      <button onclick="init();" > newmap </button>
+      <button onclick="toggleMap();" > toggle map </button>
+      <button onclick=" dot.pos.set(200, 200); dot.draw = true;" >
+           reset position(unstuck) </button>
+      
+    </body>
+    <!--
+    <p style="background-color:white;"> 
+        Use W(super-jump), A(left), D(right) keys to move,
+        </br>
+        move your mouse over the canvas to move the light click on the canvas 
+        to toggle the background color to blue/black and see the map.
+       </br>
+        Note I use google chromeand mozilla to test this and have not tested on IE.
+        Javascript must be enabled and your browser must support canvas/html5.
+    </p>
+-->
+    <script type="text/javascript"> 
+        //these helper functions and classes, they are here because I didn't want to create another
+        //js file
+        var PI = Math.PI,
+            _90 = PI*0.5,
+            _180 = PI,
+            _270 = PI*1.5,
+            _360 = PI*2;
+            
+        //this class handles all locations on the canvas
+        function Vector(x, y) {
+          this.x = x;
+          this.y = y;
+        }
+        
+        Vector.prototype.offset = function(x, y) {
+          this.x += x;
+          this.y += y;
+        };
+        
+        Vector.prototype.set = function(x, y) {
+          this.x = x;
+          this.y = y;
+        };
+            
+        Vector.prototype.addV = function(v) {
+          this.x += v.x;
+          this.y += v.y;
+        };
+        
+        Vector.prototype.copy = function(v) {
+          this.x = v.x;
+          this.y = v.y;
+        };
+        
+        Vector.prototype.distanceTo = function(v) {
+            return Math.sqrt( Math.pow( (v.x - this.x), 2 ) + 
+                                Math.pow( (v.y - this.y), 2 ) );
+        };
+        
+        Vector.prototype.dotProduct = function(v) {
+            
+        };
+        
+        //gets angle from mouse position, obj is the player
+        function getAngle( obj, mouse ){
+           var angle,
+             ox = obj.pos.x - mouse.x,
+             oy = obj.pos.y - mouse.y;
+          
+         if( ox !== 0 ){
+            angle = toDegrees( Math.atan( oy/ox ) );
+        
+            if( ox > 0 && oy > 0){
+                angle += 180;
+            }else if( ox < 0 && oy > 0 ) {
+                angle += 360;
+            }else if( ox < 0 && oy < 0 ) {
+                angle = angle;
+            }else if( ox > 0 && oy < 0 ) {
+                angle += 180 ;
+            }else{
+              angle = ox > 0 ? 180 : 0; 
+            }
+            
+          } else {
+            if(oy > 0){
+              angle = 270;
+            } else {
+              angle = 90;
+            }
+          }
+          
+          return angle;
+        }
+
+        //gets mouse cords relative to the location of the canvas on the html body
+        function getCords( cnvs, mx, my ){
+            var bound = cnvs.getBoundingClientRect();
+            //return { x: mx - bound.left * (cnvs.width / bound.width),
+            //        y: my - bound.top * (cnvs.height / bound.height)
+            //       };
+            return new Vector( mx - bound.left * (cnvs.width / bound.width),
+                                my - bound.top * (cnvs.height / bound.height) );
+        }
+        
+        function toRadians( angle ) {
+          return angle * ( PI / 180 );
+        }
+        
+        function toDegrees( angle ) {
+          return angle * ( 180 / PI );
+        }
+        
+        function getQuad( angle, inrad ) {
+            var q = 0;
+            if( inrad ) angle = toDegrees( angle );
+            if( 0 < angle && angle < 90 ) {
+                q = 1;
+            } else if( 90 < angle && angle < 180 ) {
+                q = 2;
+            } else if( 180 < angle && angle < 270 ) {
+                q = 3;
+            } else if( 270 < angle && angle < 360 ) {
+                q = 4;
+            } else {
+                q = 5;
+            }
+            return q;
+        }
+        
+        function toggleMap(){
+          draw_map = !draw_map;
+          if( draw_map ) {
+            document.body.style.background = "blue";
+          } else {
+            document.body.style.background = "black";
+          }
+        }
+        
+    </script>
+    
+    <script type="text/javascript" src="jsss/map.js"></script>  
+    <script type="text/javascript" src="jsss/ray.js"></script>  
+    <script type="text/javascript" src="jsss/rope.js"></script> 
+    <script type="text/javascript" src="jsss/game.js"></script> 
+    
+    <!--
+    <script type="text/javascript" src="jss/map.js"></script>  
+    <script type="text/javascript" src="jss/ray.js"></script>  
+    <script type="text/javascript" src="jss/events.js"></script> 
+    <script type="text/javascript" src="jss/game.js"></script> 
+    -->
+    <!--
+    <script type="text/javascript" src="js/map.js"></script>  
+    <script type="text/javascript" src="js/raycaster.js"></script>  
+    <script type="text/javascript" src="js/cave.js"></script>  
+    -->
+    
+</html>
