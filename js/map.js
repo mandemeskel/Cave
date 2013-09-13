@@ -5,7 +5,7 @@
  * The map is comprised of boxs which can be solid or not.
  */
 var size_x = 60,
-	size_y = 50,
+	size_y = 35,
 	fillprob = 40,
 	gens = 2,
 	params = { r1_cutoff: 5, r2_cutoff: 1, reps: 2 },
@@ -14,44 +14,42 @@ var size_x = 60,
 	map1 = [];	
 	
 function Box( origin, w, l, solid ){
-  origin.offset(10, 10);
-  this.origin = origin; 
-  this.w = w;
-  this.l = l;
-  this.solid = solid || false;
+	//origin.offset(10, 10);
+  	this.origin = origin; 
+  	this.w = w;
+  	this.l = l;
+  	this.solid = solid || false;
 }
 
-//we dont need to draw the boxes but we do because it makes things easier
-Box.prototype.draw = function() {
-  //ctx.save();
-  
-  ctx.strokeRect( this.origin.x, this.origin.y, this.w, this.l );
+Box.prototype.draw = function( fill ) {
+	
+	ctx.strokeStyle = fill || "black";
+	ctx.strokeRect( this.origin.x, this.origin.y, this.w, this.l );
 
-  if( this.solid ) {
-    ctx.fillStyle = "black";
-    ctx.fillRect( this.origin.x, this.origin.y, this.w, this.l );
-  }
-  
-  //ctx.restore();
+	if( this.solid ) {
+	    ctx.fillStyle = fill || "black";
+	    ctx.fillRect( this.origin.x, this.origin.y, this.w, this.l );
+	}
+
 };
 
-//rays call this function and the box checks if the passed point in the ray intersects it
+//TODO: remove
 Box.prototype.checkCollision = function(v) {
-  if( !this.solid ) return false;
-  var max_x = this.origin.x + this.w;
-  var max_y = this.origin.y + this.l;
+	if( !this.solid ) return false;
+  	var max_x = this.origin.x + this.w;
+  	var max_y = this.origin.y + this.l;
   
-  if( max_x >= v.x && v.x >= this.origin.x ){
-    if( max_y >= v.y && v.y >= this.origin.y ) return true;
-  }
-  return false;
+  	if( max_x >= v.x && v.x >= this.origin.x ){
+    	if( max_y >= v.y && v.y >= this.origin.y ) return true;
+  	}
+  	return false;
 };
 
 Box.prototype.set = function( x, y, d, solid ) {
-  this.origin = new Vector( x, y );
-  this.w = d;
-  this.l = d;
-  this.solid = solid;
+  	this.origin = new Vector( x, y );
+  	this.w = d;
+  	this.l = d;
+  	this.solid = solid;
 };
 
 function randpick() { 
@@ -68,7 +66,7 @@ function initMap() {
 		map1[y] = [];
 		
 		for( x = 0; x < size_x; x++ ) {
-	
+
 			map[y].push( randpick() );
 			map1[y].push( TILE_WALL );
 			
@@ -85,7 +83,7 @@ function initMap() {
 }
 
 function generateMap(){
-	var x, y, n, k; //n=ii, k=jj
+	var x, y, n, k;
 	
 	//work within the boarders created in initMap
 	for( y=1; y<size_y-1; y++ ) {
@@ -162,24 +160,21 @@ function cleanMap() {
 }
 
 function drawMap( d ) {
-  var box = new Box( new Vector( 0, 0), 10, 10, 0 ),
-  	r, c;
-  	
-  ctx.save();
-  ctx.strokeStyle = "black";
+  	var box = new Box( new Vector( 0, 0), 10, 10, 0 ),
+  		r, c;
+
+  	ctx.strokeStyle = "black";
   
-  for( r = size_y-1; r >= 0; r-- ) {
-    for( c = size_x-1; c >= 0; c-- ){
+  	for( r = size_y-1; r >= 0; r-- ) {
+    	for( c = size_x-1; c >= 0; c-- ){
     	
-      box.set( c*d, r*d, d, map[r][c] );
-      box.draw();
+      		box.set( c*d, r*d, d, map[r][c] );
+      		box.draw();
       
-    }
-  }
+    	}
+  	}
   
-  ctx.restore();
    
-  
 }
 
 function createMap( d ) {
@@ -202,6 +197,77 @@ function createMap( d ) {
 	map_h = size_y * BOX_D;
 }
 
-function getRandomInt(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min;
+//checks to see if the 
+function checkMap( v ) {
+	
+	var current_pos = new Vector( v.x, v.y ),
+		next_pos = new Vector( v.x, v.y ),
+		floors = [], walls = [],
+		x, y, n = 0;
+		
+	floors.push( new Vector( next_pos.x, next_pos.y ) );
+	
+	do {
+	
+		if( n > (size_x * size_y) ) return false;
+	
+		next_pos.copy( current_pos );
+		x = getRandomInt( -1, 1 );
+		y = getRandomInt( -1, 1 );
+		next_pos.offset( x, y );
+		
+		if( vectorIn( floors, next_pos ) && !next_pos.equals( v ) ) {
+			
+			if( !vectorIn( walls, next_pos ) ) 
+				walls.push( new Vector( next_pos.x, next_pos.y ) )
+			if( walls.length == 8 ) {
+				if( current_pos.equals(v) ) {
+					return false;
+				} else {
+					current_pos.copy( v );
+					walls.length = 0;
+				}
+			}
+			
+			continue;
+			
+		}
+		
+		if( map[ next_pos.y ][ next_pos.x ] == TILE_WALL ) {
+			
+			if( !vectorIn( walls, next_pos ) ) walls.push( new Vector( next_pos.x, next_pos.y ) );
+			if( walls.length == 8 ) {
+				if( current_pos.equals(v) ) {
+					return false;
+				} else {
+					current_pos.copy( v );
+					walls.length = 0;
+				}
+			}
+			
+			
+		} else {
+			
+			current_pos.copy( next_pos );
+			floors.push( new Vector( next_pos.x, next_pos.y ) );
+			walls.length = 0;
+			
+			if( floors.length > 50 ) return true;
+		}
+		
+		n++;
+		
+	} while( true );
+	
+}
+
+function vectorIn( varray , v ) {
+	
+	if( varray.length === 0 ) return false;
+	
+	for( var n = varray.length - 1; n >= 0; n-- ) {
+		if( varray[n].equals( v ) ) return true;
+	}
+	
+	return false;
 }

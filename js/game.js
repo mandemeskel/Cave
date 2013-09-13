@@ -3,13 +3,16 @@
  * The main game file, where everything comes together and where the canvas is created.
  */
 var cnvs = document.createElement('canvas');
-var ctx = cnvs.getContext('2d');
+var ctx = cnvs.getContext('2d'),
+	canvas_vector = new Vector( 200, 200 );
 var map = [],
 	temp_map = [],
 	outline = [],
 	map_h, map_w, 
-	BOX_D = 30,
+	BOX_D = 20,
 	draw_map = false;
+	spawn = new Box( 0, 0, 0, 0 ),
+	spawn_v = new Vector( 0, 0 );
 var real_x = ( BOX_D * size_x ),
 	real_y = ( BOX_D * size_y );
 var w = real_x > document.width ? real_x : document.width,
@@ -18,7 +21,7 @@ cnvs.width = w;
 cnvs.height = h;
 document.body.appendChild(cnvs);
 var G = 9.8,
-    FLOOR = map_h-100;
+    wall = map_h-100;
     
 var draw_window = new Vector( 0, 0 ),
 	draw_end =  new Vector( 0, 0 ),
@@ -29,32 +32,33 @@ var cast_range;
 //player object
 var dot_ray = new Ray( new Vector(0,0), 0, 0 );
 var left, right;
-var dot = {pos: new Vector( 200, 200 ),
-		   prev: new Vector( 200, 200 ),
-           rad: 10,
-           speed: 5,
+var dot = {pos: new Vector( 210, 210 ),
+		   prev: new Vector( 210, 210 ),
+           rad: 5,
+           speed: 2,
            draw: true,
            vy: 0,
-           //hp: 100,
-           rappelling: false,
-           rope: new Rope( 0, 0 ),
+           climbing: { is: false, left_edge: false },
            falling: false,
+           fallfrom: map_h,
            fall: function( time, newtime ) {
 				  if( this.pos.y < map_h-BOX_D ) {
-				  	  //if(newtime == true) this.ti = time;
 					  this.ti = this.ti || time;
 					  var dt = (new Date().getTime() / 1000) - this.ti;
 					  this.vy = (G*dt / 1);
-					  /**
+					  
 					  dot_ray.set( new Vector( this.pos.x, this.pos.y+this.rad ),
 					  	_90, this.vy );
-					  if( dot_ray.cast()  ) {
+					  if( dot_ray.cast() ) {
 					  	this.falling = false;
-					  	return false;
+					  	this.pos.y += dot_ray.far;
+					  	
+					  	if( ( this.pos.y - this.fallfrom ) >= 120 ) this.death();
+					  	
+					  } else {
+					  	this.pos.y += this.vy;
 					  }
-					  **/
-					  this.pos.y += this.vy; 
-					  //if( this.vy > G ) this.hp -= ( this.vy * 1.5 );
+					 
 				}  
 			},
 			bound: function( dir ) {
@@ -75,25 +79,39 @@ var dot = {pos: new Vector( 200, 200 ),
 				}
 				return new Vector( x, y );
 			},
-			isFalling: function(){
+			isFalling: function() {
+				
+				if( this.climbing.is ) return false;
+				
 				dot_ray.set( new Vector( this.pos.x+this.rad, this.pos.y+this.rad ),
-				 										_90, this.vy );
+				 										_90, this.rad );
 				right = !dot_ray.cast();
-				dot_ray.set( new Vector( this.pos.x-this.rad, this.pos.y+this.radd ),
-				 										_90, this.vy );
+				dot_ray.set( new Vector( this.pos.x-this.rad, this.pos.y+this.rad ),
+				 										_90, this.rad );
 				left = !dot_ray.cast();
 				
 				if( left && right ) {
 					this.falling = true;
+					if( this.pos.y < this.fallfrom ) this.fallfrom = this.pos.y;
+					if( this.rope_draw ) this.rappelling = true;
 				} else if( this.falling && ( !left || !right ) ) {
 					this.falling = false;
+					this.fallfrom = map_h;
+					if( this.rappeling ) this.rappelling = false;
 				}
+			},
+			death: function() {
+				
+				cone.color = "black";
+				game = false;
+				document.getElementById( "deadToast" ).className = "toast";
+				
 			}
 		};
 
 //cone, light object
-var cone = {pos: dot.pos, // new Vector( dot.pos.x, dot.pos.y),
-            r: 150,
+var cone = {pos: dot.pos,
+            r: 120,
             color: 'yellow',
             angle: toRadians(225),
             quad: function(){ return getQuad( this.angle, true ); },
@@ -107,108 +125,20 @@ var canMove = function( v, angle, rad ){
 	var move = false;
   	ray_move.set( v, angle, rad || dot.rad );
   	move = !ray_move.cast()
+  	
   	if( dot.rappelling && move ) {
+  		
   		if( angle == _90 || angle == _270 ) return true;
   		if( dot.rope.length > dot.rope.start.distanceTo( dot.pos ) ) {
   			return true;
   		}
-  		//if( angle == _180 || angle == 0 ) { //swing left and right
-  			
-  		//}
-  		//return false;
+  		if( angle == _180 || angle == 0 ) { //swing left and right
+  			return true;
+  		}
+  		
   	}
   	return move;
   	
-    //return !ray_move.cast(); 
-
-};
-
-//chesk if player is falling
-/**
-function isFalling(){
-	var left, right;
-	ray_move.set( new Vector( dot.pos.x+dot.rad, dot.pos.y+dot.rad ),
-	 										_90, dot.rad*2 + dot.vy );
-	right = !ray_move.cast();
-	ray_move.set( new Vector( dot.pos.x-dot.rad, dot.pos.y+dot.rad ),
-	 										_90, dot.rad*2 + dot.vy );
-	left = !ray_move.cast();
-	
-	if( left && right ) dot.falling = true;
-}
-**/
-
-//updates player position
-var update = function(){
-  //isFalling();
-  dot.isFalling();
-  dot.prev.copy( dot.pos );
-  if(65 in keysDown){ //A key left
-    if( canMove( dot.bound( 0 ), _180) ){
-    	
-    	if( dot.rappelling ) {
-    		dot.pos.y -= dot.speed * Math.sin( toRadians(30) );
-    		dot.pos.x -= dot.speed;
-    		dot.rope.updateLength( dot.pos );
-    	} else {
-        	dot.pos.x -= dot.speed;
-        }
-        dot.draw = true;
-		
-    }
-  }
-  //TODO: Optimize and fix jump mechanics 
-  if(87 in keysDown){ //W key up
-	if( dot.rappelling  ) {
-		if( canMove( dot.bound( 1 ), _270, dot.rad*0.5 ) ) {
-	        dot.pos.y -= dot.speed;
-	        dot.rope.updateLength( dot.pos );
-	        dot.draw = true;
-    	}		
-	} else {
-	    if( canMove( dot.bound( 1 ), _270,  dot.speed*4 ) ) {
-	        dot.pos.y -= dot.speed*4;
-	        //dot.vy -= dot.speed*4;
-	        dot.draw = true;
-		}
-	}
-  }
-  
-  if(83 in keysDown && dot.rappelling ){ //S key down, falling
-  	 if( canMove( dot.bound( 3 ), _90,  dot.rad*0.5 ) ){
-        dot.pos.y += dot.speed;
-        dot.rope.updateLength( dot.pos );
-        dot.draw = true;
-    }
-  }
-  
-  if( dot.falling && !dot.rappelling ) {
-    if( canMove( dot.bound( 3 ), _90, dot.rad*0.5 ) ){
-        //dot.y += dot.speed;
-        dot.fall( new Date().getTime() / 1000 );
-        dot.draw = true;
-		//cone.pos.copy( dot.pos );
-    }else{
-    	dot.vy = 0;
-    	dot.falling = false;
-    	dot.ti = undefined;
-    }
-  }else{
-    	dot.vy = 0;
-    	dot.falling = false;
-    	dot.ti = undefined;
-  }
- 
-  if(68 in keysDown){ //D key right
-		if( canMove( dot.bound( 2 ), 0) ){
-			  dot.pos.x += dot.speed;
-			  dot.draw = true;
-			  //cone.pos.copy( dot.pos );
-		   //isFalling();
-		}
-  }
-  
-  //dot.pos.set( dot.x, dot.y );
 };
 
 
@@ -220,16 +150,22 @@ cnvs.onmousedown = function(e){
 	
 	//can only hook rappell rope to near by box
 	if( cord.distanceTo( dot.pos ) < BOX_D ) {
+		
+		if( dot.pos.distanceTo( spawn.origin ) < (BOX_D*2) ) {
+			document.getElementById( "nextLvlToast" ).className = "toast";
+			return false;
+		}
+		
 		//cant rappell while rappelling
-		if( !dot.rappelling ) {
+		if( !dot.rope_draw ) {
 			
 			dot.rope.set( cord, dot.pos );
-			//dot.rope.end = dot.pos;
 			dot.rope.draw();
-			dot.rappelling = true;
+			dot.rope_draw = true;
 			
 		} else {
 			
+			dot.rope_draw = false;
 			dot.rappelling = false;
 			
 		}
@@ -241,99 +177,215 @@ cnvs.onmousemove = function(e){
   var cord = getCords(cnvs, e.clientX, e.clientY);
   
   cone.angle = toRadians( getAngle( cone, cord ) );
-  //cone.quad();
+
   cone.draw = true;
   dot.draw = true;
 };
 
+//keyboard event listeners
 var keysDown = {};
-addEventListener("keydown", function(e){
-  keysDown[e.keyCode] = true;
-}, false);
-addEventListener("keyup", function(e){
-  delete keysDown[e.keyCode];
-}, false);
+function keydown(e) { keysDown[e.keyCode] = true; }
+addEventListener("keydown", keydown, false);
+
+function keyup(e) { delete keysDown[e.keyCode]; }
+addEventListener("keyup", keyup, false);
 
 
-//draw functions, clears screen
-function clear() {
-    ctx.fillStyle="#ffffff";
-    ctx.fillRect(0,0,w,h);
-    ctx.fillStyle="#888888";
-    ctx.strokeRect(0,0,w,h);
-}
+//updates player position
+var update = function(){
+
+  dot.isFalling();
+  dot.prev.copy( dot.pos );
+  
+  	//A key left
+  	if(65 in keysDown){ 
+    	if( canMove( dot.bound( 0 ), _180) ){
+    		dot.pos.x -= dot.speed;
+        	
+        	if( dot.climbing.is && !dot.climbing.left_edge ) dot.climbing.is = false;
+        	
+        	dot.draw = true;
+		
+    	}
+  	}
+
+	//W key up/jump
+  	if(87 in keysDown){ 
+  		if( !dot.climbing.is ) {
+  			if( canMove( dot.bound( 1 ), _270,  dot.speed ) ) {
+  				
+  				if( !canMove( new Vector( dot.pos.x - dot.rad, dot.pos.y - dot.rad ), _180 ) ) {
+  					dot.pos.y -= dot.speed;
+		        	dot.climbing.is = true;
+		    		dot.climbing.left_edge = true;
+		        	dot.draw = true;
+  				} else if ( !canMove( new Vector( dot.pos.x + dot.rad, dot.pos.y - dot.rad ), 0 ) ) {
+  					dot.pos.y -= dot.speed;
+		    		dot.climbing.is = true;
+		    		dot.climbing.left_edge = false;
+		        	dot.draw = true;
+  				} else {
+  					if( canMove( dot.bound( 1 ), _270,  dot.speed*4 ) ) {
+	        			dot.pos.y -= dot.speed*4;
+	        			dot.draw = true;
+	        		} 
+	        	}
+			}
+  		} else {
+  			if( canMove( dot.bound( 1 ), _270,  dot.speed ) ) {
+	        	dot.pos.y -= dot.speed;
+	        	dot.draw = true;
+	        	
+	        	if( canMove( new Vector( dot.pos.x + dot.rad, dot.pos.y - dot.rad ), 0 ) 
+	        		&& !dot.climbing.left_edge ) {
+	        		dot.climbing.is = false; 
+	       		} else if( canMove( new Vector( dot.pos.x - dot.rad, dot.pos.y - dot.rad ), _180 )
+	       			&& dot.climbing.left_edge ) {
+	       			dot.climbing.is = false; 	
+	       		}
+			}
+  		}
+  	}
+  
+  	//S key down, start climbing down
+  	if(83 in keysDown ){ 
+  		if( !dot.climbing.is ) {
+  			//climbing a wall on the right side
+	  		if( canMove( new Vector( dot.pos.x, dot.pos.y + dot.rad ), _90,  dot.rad*0.5 ) 
+	  			&& !canMove( new Vector( dot.pos.x - dot.rad, dot.pos.y + dot.rad ),
+	    	 _90,  dot.rad*0.5 ) ) {
+	        	dot.pos.y += dot.speed;
+	        	dot.climbing.is = true;
+	    		dot.climbing.left_edge = false;
+	        	dot.draw = true;
+	       	//climbing a wall on the left side
+	    	} else if( canMove( new Vector( dot.pos.x, dot.pos.y + dot.rad ), _90,  dot.rad*0.5 ) 
+	    	&& !canMove( new Vector( dot.pos.x+dot.rad, dot.pos.y + dot.rad ), _90,  dot.rad*0.5 ) ) { 		
+	    		dot.pos.y += dot.speed;
+	    		dot.climbing.is = true;
+	    		dot.climbing.left_edge = true;
+	        	dot.draw = true;
+	    	}
+    	} else {
+  			//climbing a wall on the right side
+    		if( canMove( new Vector( dot.pos.x, dot.pos.y + dot.rad ), _90,  dot.rad*0.5 ) 
+	  			&& !canMove( new Vector( dot.pos.x + dot.rad, dot.pos.y + dot.rad ), 0 ) ) {
+	        	dot.pos.y += dot.speed;
+	        	dot.climbing.is = true;
+	    		dot.climbing.left_edge = false;
+	        	dot.draw = true;
+	       	//climbing a wall on the left side
+	    	} else if( canMove( new Vector( dot.pos.x, dot.pos.y + dot.rad ),
+	    	 _90,  dot.rad*0.5 ) && 
+	    	 !canMove( new Vector( dot.pos.x - dot.rad, dot.pos.y + dot.rad ), _180 )) { 		
+	    		dot.pos.y += dot.speed;
+	    		dot.climbing.is = true;
+	    		dot.climbing.left_edge = true;
+	        	dot.draw = true;
+	    	} else {
+	    		dot.climbing.is = false; 
+	    	}
+    	}
+  	}
+  
+	//falling 
+  	if( dot.falling && !dot.rappelling ) {
+    	if( canMove( dot.bound( 3 ), _90, dot.rad*0.5 ) ){
+        
+        	dot.fall( new Date().getTime() / 1000 );
+        	dot.draw = true;
+        
+	    }else{
+	    	dot.vy = 0;
+	    	dot.falling = false;
+	    	dot.ti = undefined;
+	    }
+	}else{
+		dot.vy = 0;
+		dot.falling = false;
+	    dot.ti = undefined;
+	}
+ 
+	//D key right
+	if(68 in keysDown){ 
+		if( canMove( dot.bound( 2 ), 0) ){
+			dot.pos.x += dot.speed;
+			dot.draw = true;
+			
+			if( dot.climbing.is && dot.climbing.left_edge ) dot.climbing.is = false;
+		}
+ 	}
+  
+
+};
+
 
 //draws player
 var draw = function(){
+
   if(dot.draw){
-     //clear();
-     //ctx.clearRect(0, 0, w, h);
-     draw_window.set( dot.prev.x - cone.r, dot.prev.y - cone.r );
-     draw_x = draw_y = cone.r*2;
+
+     draw_window.set( dot.prev.x - (cone.r+5), dot.prev.y - (cone.r+5) );
+     draw_x = draw_y = (cone.r+10)*2;
      draw_end.set( draw_x, draw_y );
      draw_end.addV( draw_window );
      
      ctx.clearRect( draw_window.x, draw_window.y, draw_x, draw_y );
      
-     //draw map first than player over the map
-     if( draw_map ) drawMap( BOX_D );
-     
-     ctx.beginPath();
      ctx.save();
-     ctx.font = '20pt Arial';
-     ctx.fillStyle = 'darkgreen';
-     ctx.strokeStyle = 'lightgreen';
-     ctx.arc(dot.pos.x, dot.pos.y, dot.rad, 0, Math.PI*2,
-             false);
-     ctx.stroke();
-     ctx.fill();
-     ctx.closePath();
-     dot.draw = false;
      
-     if( dot.rappelling ) {
+     if( draw_map ) drawMap( BOX_D );
+     drawOutLine();
+     
+     ctx.restore();
+          
+          
+     //draw player and rope
+     ctx.save();
+     
+     //draw spawn box/entrance/exit
+     spawn.draw( "yellow" );
+    
+     if( dot.rope_draw ) {
      	dot.rope.end.copy( dot.pos );
      	dot.rope.draw();
      }
      
+     drawCone( cone.pos, cone.angle, cone.r, cone.offset );
+
      ctx.restore();
 
-     
-     cone.draw = true;
      dot.draw = false;
   }
-  
-  if( cone.draw ) {
-    
-    drawCone( cone.pos, cone.angle, cone.r, cone.offset );
-    
-    drawOutLine();
-    
-    cone.draw = false;
-  }
+
 };
 
-//actually draws each beam of light, ray
+//draws each beam of light, ray
 var ray_light = new Ray( new Vector(0,0), 0, 0 );
+var temp = new Vector( 0, 0 );
+var skip = false;
 function drawLine(v, angle, r) {
 	ray_light.set( v, angle, r );
-	//ray_light.calcEnd();
-	//ray_light.calcEndQ( cone.quad() );
-	//ray_light.collision = false;
 	ray_light.cast();
     
+    ctx.beginPath();
     ctx.moveTo( v.x, v.y );
    	ctx.lineTo( ray_light.end.x, ray_light.end.y );
     ctx.closePath();
     ctx.stroke();
-    
+     
+    temp.set( Math.ceil( ray_light.end.x ), Math.ceil( ray_light.end.x ) )
     ray_light.end.x = Math.floor( ray_light.end.x );
     ray_light.end.y = Math.floor( ray_light.end.y );
-    
-    //if( outline.indexOf( ray_light.end ) == -1 && ray_light.collision ) 
-    		//outline.push( ray_light.end );
-    if( outline.indexOf( { x: ray_light.end.x, y: ray_light.end.y } ) == -1 &&
-    															 ray_light.collision ) 
-    		outline.push( { x: ray_light.end.x, y: ray_light.end.y } );
+
+	skip = !skip; 
+	if( skip ) {
+		return;
+	}
+	
+	if( !vectorIn( outline, ray_light.end ) &&  
+		!vectorIn( outline, temp )  &&	ray_light.collision )
+    		outline.push( new Vector( ray_light.end.x, ray_light.end.y ) );
     		
     
 }
@@ -341,16 +393,12 @@ function drawLine(v, angle, r) {
 //calls drawLine to create light cone
 function drawCone(v, angle, r, offset) {
     var a = toDegrees(angle);
-	
-    ctx.save();
     
     ctx.strokeStyle = cone.color;
     
     for( var n=a-offset; n <= a+offset; n++) {
-      drawLine( v, toRadians(n), r );
+    	drawLine( v, toRadians(n), r );
     }
-    
-    ctx.restore();
 	
 }
 
@@ -358,8 +406,6 @@ function drawCone(v, angle, r, offset) {
 function drawOutLine() {
 	
 	if( outline.length === 0 ) return false;
-	
-	ctx.save();
 	
 	ctx.fillStyle = "gray";
 	
@@ -372,7 +418,6 @@ function drawOutLine() {
 		
 	}
 	
-	ctx.restore();
 }
 
 
@@ -399,21 +444,58 @@ function getMapRange( v, distance ) {
 
 }
 
-//start
-function init(){
-	createMap( BOX_D );
-	outline.length = 0;
+
+//find an empty square in top left cornor to spawn in
+function getSpawnVector() {
+	var walls = 0;
+	//ignore edge boxes that are adjacent to wall sorounding map
+	for( r = 1; r < size_y; r++ ) {
+    	for( c = 1; c < size_x; c++ ){
+    	
+      		if( map[r][c] === TILE_FLOOR ) {
+      			
+      			if( map[r+1][c] === TILE_WALL ) {
+      				spawn.set( (c * BOX_D), (r * BOX_D), BOX_D, 0 );
+      				spawn_v.set( c, r );
+      				return new Vector( spawn.origin.x + BOX_D*0.5, spawn.origin.y + BOX_D*0.5 );
+      			}
+      		}
+      
+    	}
+  	}
 }
+
+//start
+var game = false;
+function init(){
+
+    do {
+    		
+		//setting up map
+		ctx.clearRect( 0, 0, w, h );
+		createMap( BOX_D );	
+		outline.length = 0;
+		
+		//setting up player
+		dot.pos.copy( getSpawnVector() );
+		dot.prev.copy( dot.pos );
+	    cone.color = "yellow";
+    	
+    } while( !checkMap( spawn_v ) ); //check the map
+    
+    //lets a'go!
+	document.getElementById( "introToast" ).className = "invis";
+	game = true;
+	if( game ) setInterval(main, 1);
+}
+
 //update loop
 var main = function(){
+	
+	if( !game ) return false;
 	
     cast_range = getMapRange( cone.pos, cone.r );
   	update();
   	draw();
-  	//requestanim makes the game slugish :/
-	//requestAnimationFrame( main );
+  	
 };
-
-setInterval(main, 1);
-init();
-//main();

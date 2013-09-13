@@ -2,33 +2,66 @@
 <html>
     
     <head>
-    <meta charset=utf-8 />
-    
-    <title>Cave</title>
+        <meta charset=utf-8 />
+
+        <link rel="stylesheet" type="text/css" href="static/style.css">
+
+        <title>Cave</title>
     </head>
     
     <body style="background-color:black;">
       
       <button onclick="init();" > newmap </button>
       <button onclick="toggleMap();" > toggle map </button>
-      <button onclick=" dot.pos.set(200, 200); dot.draw = true;" >
+      <button onclick=" dot.prev.copy(dot.pos); dot.pos.set(200, 200); dot.draw = true;" >
            reset position(unstuck) </button>
-      
+
+        <!-- next level dialog box -->
+        <div id="nextLvlToast" class="toast invis">
+            <p class="title">Paused</p>
+            <p>Go to the next level?</p>
+            <button onclick="handelNextLvl( true )"> Yes </button>
+            <button onclick="handelNextLvl( false )"> No </button>
+        </div>
+          
+          
+         <!--- dead player dialog box -->
+        <div id="deadToast" class="toast invis">
+            <p class="title">Death...</p>
+            <p>You have fallen to your doom, play again?</p>
+            <button onclick="handelDeath( true )"> Yes </button>
+            <button onclick="handelDeath( false )"> No </button>
+        </div>
+          
+        <!-- start -->
+        <div id="introToast" class="toast ">
+            <p class="title">Cave</p>
+              
+            <p class="info" > 
+              <b> W </b> - Jump/Climb up when next to a wall
+            <br>
+              <b> A </b> - Move left/Stop climbing
+            <br>
+              <b> S </b> - Climb down when over an edge
+            <br>
+              <b> D </b> - Move right/Stop climbing
+            <br>
+              <b> RMB </b> - Use exit to lleave cave
+            <br>
+              <b> MOUSE </b> - Move mouse to move light cone
+            <br>
+            <br>
+                Go forth and explore but becarefull steep falls can kill you. Once you have
+              explored one cave go back into the entrace ( the yellow box ) and click on it to lleave.
+            </p>
+            
+            <button onclick="init();"> Start </button>
+        </div>
+                  
     </body>
-    <!--
-    <p style="background-color:white;"> 
-        Use W(super-jump), A(left), D(right) keys to move,
-        </br>
-        move your mouse over the canvas to move the light click on the canvas 
-        to toggle the background color to blue/black and see the map.
-       </br>
-        Note I use google chromeand mozilla to test this and have not tested on IE.
-        Javascript must be enabled and your browser must support canvas/html5.
-    </p>
--->
+
     <script type="text/javascript"> 
-        //these helper functions and classes, they are here because I didn't want to create another
-        //js file
+        //these are helper functions and classes
         var PI = Math.PI,
             _90 = PI*0.5,
             _180 = PI,
@@ -66,8 +99,8 @@
                                 Math.pow( (v.y - this.y), 2 ) );
         };
         
-        Vector.prototype.dotProduct = function(v) {
-            
+        Vector.prototype.equals = function(v) {
+            return ( this.x == v.x ) && ( this.y == v.y);
         };
         
         //gets angle from mouse position, obj is the player
@@ -105,9 +138,6 @@
         //gets mouse cords relative to the location of the canvas on the html body
         function getCords( cnvs, mx, my ){
             var bound = cnvs.getBoundingClientRect();
-            //return { x: mx - bound.left * (cnvs.width / bound.width),
-            //        y: my - bound.top * (cnvs.height / bound.height)
-            //       };
             return new Vector( mx - bound.left * (cnvs.width / bound.width),
                                 my - bound.top * (cnvs.height / bound.height) );
         }
@@ -146,23 +176,31 @@
           }
         }
         
+        //handels player response for death toast dialog 
+        function handelDeath( yes ) {
+            if( yes ) {
+                init();
+            } else {
+                ctx.clearRect( 0, 0, w, h );
+                document.getElementById( "introToast" ).className = "toast";
+            }
+            document.getElementById( "deadToast" ).className = "invis";
+        }
+        
+        //handels player response for next level toast dialog 
+        function handelNextLvl( yes ) {
+            if( yes ) init();
+            document.getElementById( "nextLvlToast" ).className = "invis";
+        }
+        
+        function getRandomInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
     </script>
     
-    <script type="text/javascript" src="jsss/map.js"></script>  
-    <script type="text/javascript" src="jsss/ray.js"></script>  
-    <script type="text/javascript" src="jsss/rope.js"></script> 
-    <script type="text/javascript" src="jsss/game.js"></script> 
-    
-    <!--
-    <script type="text/javascript" src="jss/map.js"></script>  
-    <script type="text/javascript" src="jss/ray.js"></script>  
-    <script type="text/javascript" src="jss/events.js"></script> 
-    <script type="text/javascript" src="jss/game.js"></script> 
-    -->
-    <!--
     <script type="text/javascript" src="js/map.js"></script>  
-    <script type="text/javascript" src="js/raycaster.js"></script>  
-    <script type="text/javascript" src="js/cave.js"></script>  
-    -->
+    <script type="text/javascript" src="js/ray.js"></script>
+    <script type="text/javascript" src="js/game.js"></script> 
     
 </html>

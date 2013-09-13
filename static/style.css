@@ -1,0 +1,84 @@
+.toast {
+  
+	position: fixed;
+	top: 20px;
+	left: 50%;
+	width: 200px;
+	margin-left: -100px;
+	border: 5px solid #ffff00;
+	background-color: #000;
+	padding: 10px 0 ;
+	text-align:center;
+	opacity: .9;
+    color: #ddd;
+	font-family:Arial;
+  
+}
+
+.title {
+  
+  font-family:Arial;
+  text-shadow: 5px 5px 5px #ffff00;
+  font-size: 25px;
+  font-weight: bold;
+  
+}
+
+/*http://www.cssbuttongenerator.com/ */
+.toast button {
+
+    background-color: #000;
+	text-indent:0;
+	border:1px solid #ffff00;
+	display:inline-block;
+	color: #ddd;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	font-style:normal;
+	height:50px;
+	line-height:25px;
+	width:25%;
+	text-align:center;
+  
+}
+.toast button:hover {
+
+	background-color:#ffff00;
+    color:#000;
+  
+}
+.toast button:active {
+  
+	position:relative;
+	top:1px;
+  
+}
+
+.invis {
+  
+  display: none;
+  visibility: hidden;
+  
+}
+
+#introToast {
+  
+  width: 50%;
+  margin-left: -25%;
+  
+}
+
+#introToast .info {
+  
+  padding-left: 15%;
+  text-align: left;
+  
+}
+
+#introToast .title {
+  
+  font-size: 50px;
+  font-weight: 500;
+  
+}
