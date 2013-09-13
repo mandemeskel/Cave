@@ -1,0 +1,17 @@
+TODO:
+1. Make dot in to a stick figure with a helment and movement animations -> 
+ it -/
+2. Create and implement climbing, rippeling and other cave exploration methods -/
+3. Randomly generate cave, with all the cave anemities including, entrances 
+and exists -/
+4. isfalling cast ray from edge of player, dot, both edges -/
+	-> might need to tweak this for jumping though, you can get stuck on 
+	the edges of the map
+	-> or we can keep it and call it climbing
+5. add health system -/
+6. make the player spwan in an empty box, or make the player spwan empty -/
+7. add entrance to cave where highscores/current level ends and 
+new level are generated -/
+8. further optimization of update(), the various draw() functions and 
+raycasting/collision detection 
+9. add distance ray travelled before it collided as Ray.far on collision -/
