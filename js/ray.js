@@ -17,7 +17,7 @@ var vector = new Vector(0,0);
 
 //TODO: calculate far after collision so that it could be used in dot.falling()
 Ray.prototype.cast = function() {
-	var x, y, n = 0;
+	var n = 0;
 	do{
 		
 		if( this.testAngle( n ) ) return true;
@@ -29,6 +29,7 @@ Ray.prototype.cast = function() {
 };
 
 Ray.prototype.testAngle = function( n ) {
+	var x, y;
 	
 	//90 to 180 2nd quadrant
 	if( _90 < this.a_r && this.a_r < _180 ) {
@@ -72,7 +73,7 @@ Ray.prototype.testAngle = function( n ) {
 		for( u = cast_range.start.x; u < cast_range.end.x; u++ ) {
 				
 			if( map[k][u] && 
-				checkCollision( {x: u * BOX_D, y: k * BOX_D }, vector) ) {
+				checkCollision( new Vector( u * BOX_D, k * BOX_D ), vector) ) {
 				
 				this.far = n;
 				this.end.copy( vector );
@@ -82,17 +83,7 @@ Ray.prototype.testAngle = function( n ) {
 			}
 				
 			if( map[k][++u] && 
-				checkCollision( {x: u * BOX_D, y: k * BOX_D }, vector) ) {
-				
-				this.far = n;
-				this.end.copy( vector );
-				this.collision = true;
-				return true;
-				
-			}
-			
-			if( map[k][++u] && 
-				checkCollision( {x: u * BOX_D, y: k * BOX_D }, vector) ) {
+				checkCollision( new Vector( u * BOX_D, k * BOX_D ), vector) ) {
 				
 				this.far = n;
 				this.end.copy( vector );
@@ -102,7 +93,7 @@ Ray.prototype.testAngle = function( n ) {
 			}
 			
 			if( map[k][++u] && 
-				checkCollision( {x: u * BOX_D, y: k * BOX_D }, vector) ) {
+				checkCollision( new Vector( u * BOX_D, k * BOX_D ), vector) ) {
 				
 				this.far = n;
 				this.end.copy( vector );
@@ -112,7 +103,17 @@ Ray.prototype.testAngle = function( n ) {
 			}
 			
 			if( map[k][++u] && 
-				checkCollision( {x: u * BOX_D, y: k * BOX_D }, vector) ) {
+				checkCollision( new Vector( u * BOX_D, k * BOX_D ), vector) ) {
+				
+				this.far = n;
+				this.end.copy( vector );
+				this.collision = true;
+				return true;
+				
+			}
+			
+			if( map[k][++u] && 
+				checkCollision( new Vector( u * BOX_D, k * BOX_D ), vector) ) {
 				
 				this.far = n;
 				this.end.copy( vector );
@@ -186,6 +187,7 @@ Ray.prototype.calcEndQ = function( q ) {
 var max_x, max_y;
 function checkCollision( box_v, v ) {
 	
+	box_v.addV( offset );
 	max_x = box_v.x + BOX_D;
   	max_y = box_v.y + BOX_D;
   	

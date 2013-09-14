@@ -9,17 +9,18 @@ var map = [],
 	temp_map = [],
 	outline = [],
 	map_h, map_w, 
-	BOX_D = 20,
+	BOX_D = 30,
 	draw_map = false;
-	spawn = new Box( 0, 0, 0, 0 ),
+	spawn = new Box( new Vector( 0, 0 ), 0, 0, 0 ),
 	spawn_v = new Vector( 0, 0 );
 var real_x = ( BOX_D * size_x ),
 	real_y = ( BOX_D * size_y );
 var w = real_x > document.width ? real_x : document.width,
 	h = real_y > document.height ? real_y : document.height;
-cnvs.width = w;
-cnvs.height = h;
-document.body.appendChild(cnvs);
+	w = 1500, h = 700;
+var offset = new Vector( w * 0.5, h * 0.5 ),
+	prev_offset = new Vector( w * 0.5, h * 0.5 );;
+
 var G = 9.8,
     wall = map_h-100;
     
@@ -28,14 +29,18 @@ var draw_window = new Vector( 0, 0 ),
 	draw_x = 0,
 	draw_y = 0;
 var cast_range;
-	
+
+cnvs.width = w;
+cnvs.height = h;
+document.body.appendChild(cnvs);
+
 //player object
 var dot_ray = new Ray( new Vector(0,0), 0, 0 );
 var left, right;
 var dot = {pos: new Vector( 210, 210 ),
 		   prev: new Vector( 210, 210 ),
            rad: 5,
-           speed: 2,
+           speed: 10,
            draw: true,
            vy: 0,
            climbing: { is: false, left_edge: false },
@@ -111,6 +116,7 @@ var dot = {pos: new Vector( 210, 210 ),
 
 //cone, light object
 var cone = {pos: dot.pos,
+			real: new Vector( 0, 0 ),
             r: 120,
             color: 'yellow',
             angle: toRadians(225),
@@ -183,8 +189,12 @@ cnvs.onmousemove = function(e){
 };
 
 //keyboard event listeners
-var keysDown = {};
-function keydown(e) { keysDown[e.keyCode] = true; }
+var keysDown = {},
+	moved = false;
+function keydown(e) { 
+	keysDown[e.keyCode] = true;
+	moved = true;
+}
 addEventListener("keydown", keydown, false);
 
 function keyup(e) { delete keysDown[e.keyCode]; }
@@ -192,7 +202,7 @@ addEventListener("keyup", keyup, false);
 
 
 //updates player position
-var update = function(){
+var update1 = function(){
 
   dot.isFalling();
   dot.prev.copy( dot.pos );
@@ -320,51 +330,95 @@ var update = function(){
 };
 
 
+var update = function() {
+	
+	if( moved ) prev_offset.copy( offset );
+	
+	if(65 in keysDown) { //A key left
+		 if( canMove( dot.bound( 0 ), _180) ){
+		 	offset.x += dot.speed;
+		 }
+	}
+	
+	if(87 in keysDown) { //W key up/jump
+		if( canMove( dot.bound( 1 ), _270,  dot.speed ) ) {
+			offset.y += dot.speed;
+		}
+	}
+		
+	if(83 in keysDown ) { //S key down, start climbing down
+		if( canMove( new Vector( dot.pos.x, dot.pos.y + dot.rad ), _90,  dot.rad ) ) {
+			offset.y -= dot.speed;
+		}
+	}
+	
+	if(68 in keysDown) { //D key right
+		if( canMove( dot.bound( 2 ), 0) ){
+			offset.x -= dot.speed;
+		}
+	}
+	
+	if( !prev_offset.equals( offset ) ) {
+		dot.draw = true;
+		moved = false;
+	}
+}
+
+
 //draws player
+var tempv = new Vector( 0, 0 );
 var draw = function(){
 
-  if(dot.draw){
+	if(dot.draw){
 
-     draw_window.set( dot.prev.x - (cone.r+5), dot.prev.y - (cone.r+5) );
-     draw_x = draw_y = (cone.r+10)*2;
-     draw_end.set( draw_x, draw_y );
-     draw_end.addV( draw_window );
-     
-     ctx.clearRect( draw_window.x, draw_window.y, draw_x, draw_y );
-     
-     ctx.save();
-     
-     if( draw_map ) drawMap( BOX_D );
-     drawOutLine();
-     
-     ctx.restore();
-          
-          
-     //draw player and rope
-     ctx.save();
-     
-     //draw spawn box/entrance/exit
-     spawn.draw( "yellow" );
-    
-     if( dot.rope_draw ) {
-     	dot.rope.end.copy( dot.pos );
-     	dot.rope.draw();
-     }
-     
-     drawCone( cone.pos, cone.angle, cone.r, cone.offset );
-
-     ctx.restore();
-
-     dot.draw = false;
-  }
+		 //draw_window.set( dot.prev.x - (cone.r+5), dot.prev.y - (cone.r+5) );
+		 //draw_window.subV( offset );
+		 draw_window.set( prev_offset.x , prev_offset.y );
+		 //draw_window.subV( offset );
+		 draw_x = draw_y = (cone.r+10)*2;
+		 draw_end.set( draw_x, draw_y );
+		 draw_end.addV( draw_window );
+		 draw_end.addV( offset );
+		 
+		 //ctx.clearRect( draw_window.x, draw_window.y, draw_x, draw_y );
+		
+		 ctx.clearRect( 0, 0, w, h );
+		
+		 //offset canvas
+		 ctx.save();
+		 
+		 ctx.translate( offset.x, offset.y );
+		 
+		 if( draw_map ) drawMap( BOX_D );
+		 drawOutLine();
+		 //wctx.moveTo( 0, 100 );
+		 
+		 //draw spawn box/entrance/exit
+		 spawn.draw( "yellow" );
+		 
+		 ctx.restore();
+		      
+		      
+		 //draw map, player and rope
+		 ctx.save();
+		 
+		 tempv.copy( cone.pos );
+		 //tempv.addV( offset );
+		 drawCone( tempv, cone.angle, cone.r, cone.offset );
+		
+		 ctx.restore();
+		
+		 dot.draw = false;
+		 
+	}	
 
 };
 
 //draws each beam of light, ray
 var ray_light = new Ray( new Vector(0,0), 0, 0 );
-var temp = new Vector( 0, 0 );
 var skip = false;
 function drawLine(v, angle, r) {
+	var temp = new Vector( 0, 0 );
 	ray_light.set( v, angle, r );
 	ray_light.cast();
     
@@ -374,29 +428,37 @@ function drawLine(v, angle, r) {
     ctx.closePath();
     ctx.stroke();
      
-    temp.set( Math.ceil( ray_light.end.x ), Math.ceil( ray_light.end.x ) )
-    ray_light.end.x = Math.floor( ray_light.end.x );
-    ray_light.end.y = Math.floor( ray_light.end.y );
-
-	skip = !skip; 
-	if( skip ) {
-		return;
-	}
-	
-	if( !vectorIn( outline, ray_light.end ) &&  
-		!vectorIn( outline, temp )  &&	ray_light.collision )
-    		outline.push( new Vector( ray_light.end.x, ray_light.end.y ) );
-    		
+    if( ray_light.collision ) { 
+    	
+    	ray_light.end.subV( offset );
+	    temp.set( Math.ceil( ray_light.end.x ), Math.ceil( ray_light.end.x ) )
+	    ray_light.end.x = Math.floor( ray_light.end.x );
+	    ray_light.end.y = Math.floor( ray_light.end.y );
+		
+		skip = !skip; 
+		if( skip ) {
+			return;
+		}
+		
+		if( !vectorIn( outline, ray_light.end ) &&  !vectorIn( outline, temp ) )
+	    		outline.push( new Vector( ray_light.end.x, ray_light.end.y ) );
+    	
+    }
     
 }
 
 //calls drawLine to create light cone
-function drawCone(v, angle, r, offset) {
+function drawCone(v, angle, r, a_offset) {
+	var temp = new Vector( 0, 0 );
     var a = toDegrees(angle);
+    
+    temp.copy(v)
+    //temp.subV( offset );
     
     ctx.strokeStyle = cone.color;
     
-    for( var n=a-offset; n <= a+offset; n++) {
+    
+    for( var n = a - a_offset; n <= a + a_offset; n++) {
     	drawLine( v, toRadians(n), r );
     }
 	
@@ -411,8 +473,10 @@ function drawOutLine() {
 	
 	for( var n = outline.length-1; n >= 0; n-- ) {
 		
-		if( outline[n].x < draw_window.x || outline[n].y <  draw_window.y ) continue;
-		if( draw_end.x < outline[n].x || draw_end.y < outline[n].y ) continue;
+		//if( outline[n].x < draw_window.x || outline[n].y <  draw_window.y ) continue;
+		//if( draw_end.x < outline[n].x || draw_end.y < outline[n].y ) continue;
+		//if( outline[n].x > draw_window.x || outline[n].y >  draw_window.y ) continue;
+		//if( draw_end.x > outline[n].x || draw_end.y > outline[n].y ) continue;
 		
 		ctx.fillRect( outline[n].x, outline[n].y, 1, 1 );
 		
@@ -483,6 +547,11 @@ function init(){
     	
     } while( !checkMap( spawn_v ) ); //check the map
     
+    //cone.real.copy()
+    offset.subV( dot.pos );
+    dot.pos.addV( offset );
+    //spawn.origin.addV( offset );
+    
     //lets a'go!
 	document.getElementById( "introToast" ).className = "invis";
 	game = true;
@@ -491,10 +560,15 @@ function init(){
 
 //update loop
 var main = function(){
-	
+	var temp = new Vector( 0, 0 );
+	temp.copy( cone.pos );
+	//temp.subV( spawn_v );
 	if( !game ) return false;
 	
-    cast_range = getMapRange( cone.pos, cone.r );
+	//it was fing cast_range all along :(
+    cast_range = getMapRange( temp, cone.r );
+    cast_range.start.set( 0, 0 );
+    cast_range.end.set( size_x, size_y );
   	update();
   	draw();
   	
