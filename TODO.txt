@@ -3,10 +3,11 @@ TODO:
 raycasting/collision detection 
 	-> outline and drawOutline need opt the most
 
-- fix drawOutline bugs ( draw_window and draw_end )
+- clean code, rename variables, cull objects/vars/functions and 
+standardize( pos or origin? )
 
-- clean code and standardize
-
+- add movement to centered view and gravity
+	-> new method of handeling player movement instead of jamming everything in update
 
 -------------------------------------WARNING!------------------------------------
 -------------------------------Warm Fellings Below-------------------------------
@@ -34,3 +35,10 @@ and exists -/
 new level are generated -/
 
 - center player and move objects instead of player -/
+
+- fix drawOutline bugs ( draw_window and draw_end ) -/
+
+- fix castrange ( range of indexs of map[][] to cyle through and ray cast ) -/
+
+- cant go to next level, something is wrong with onclick function
+	-> need to offset dot position -/

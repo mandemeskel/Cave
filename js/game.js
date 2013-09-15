@@ -18,8 +18,8 @@ var real_x = ( BOX_D * size_x ),
 var w = real_x > document.width ? real_x : document.width,
 	h = real_y > document.height ? real_y : document.height;
 	w = 1500, h = 700;
-var offset = new Vector( w * 0.5, h * 0.5 ),
-	prev_offset = new Vector( w * 0.5, h * 0.5 );;
+var offset = new Vector( 0, 0 ),
+	prev_offset = new Vector( 0, 0 );
 
 var G = 9.8,
     wall = map_h-100;
@@ -37,8 +37,14 @@ document.body.appendChild(cnvs);
 //player object
 var dot_ray = new Ray( new Vector(0,0), 0, 0 );
 var left, right;
-var dot = {pos: new Vector( 210, 210 ),
+var dot = {pos: new Vector( 210, 210 ),  //offset position
 		   prev: new Vector( 210, 210 ),
+		   pos_real: function () { 
+		   		var temp = new Vector( 0, 0 ); //regular position
+		   		temp.copy( this.pos );
+		   		temp.subV( offset );
+		   		return temp;
+		   },
            rad: 5,
            speed: 10,
            draw: true,
@@ -157,7 +163,8 @@ cnvs.onmousedown = function(e){
 	//can only hook rappell rope to near by box
 	if( cord.distanceTo( dot.pos ) < BOX_D ) {
 		
-		if( dot.pos.distanceTo( spawn.origin ) < (BOX_D*2) ) {
+		//if( dot.pos.distanceTo( spawn.origin ) < (BOX_D*2) ) {
+		if( dot.pos_real().distanceTo( spawn.origin ) < (BOX_D*2) ) {
 			document.getElementById( "nextLvlToast" ).className = "toast";
 			return false;
 		}
@@ -372,22 +379,24 @@ var draw = function(){
 	if(dot.draw){
 
 		 //draw_window.set( dot.prev.x - (cone.r+5), dot.prev.y - (cone.r+5) );
-		 //draw_window.subV( offset );
-		 draw_window.set( prev_offset.x , prev_offset.y );
+		 draw_window.copy( dot.pos );
+		 draw_window.subV( offset );
+		 //draw_window.set( dot.pos.x - prev_offset.x , dot.pos.y - prev_offset.y );
+		 //draw_window.set( prev_offset.x - (cone.r+5) , prev_offset.y - (cone.r+5) );
+		 draw_window.offset( -(cone.r+5), -(cone.r+5) );
 		 //draw_window.subV( offset );
 		 draw_x = draw_y = (cone.r+10)*2;
 		 draw_end.set( draw_x, draw_y );
 		 draw_end.addV( draw_window );
-		 draw_end.addV( offset );
+		 //draw_end.addV( offset );
 		 
-		 //ctx.clearRect( draw_window.x, draw_window.y, draw_x, draw_y );
-		
 		 ctx.clearRect( 0, 0, w, h );
 		
 		 //offset canvas
 		 ctx.save();
 		 
 		 ctx.translate( offset.x, offset.y );
+		 //ctx.clearRect( draw_window.x, draw_window.y, draw_x, draw_y );
 		 
 		 if( draw_map ) drawMap( BOX_D );
 		 drawOutLine();
@@ -431,16 +440,18 @@ function drawLine(v, angle, r) {
     if( ray_light.collision ) { 
     	
     	ray_light.end.subV( offset );
-	    temp.set( Math.ceil( ray_light.end.x ), Math.ceil( ray_light.end.x ) )
+	    //temp.set( Math.ceil( ray_light.end.x ), Math.ceil( ray_light.end.x ) )
 	    ray_light.end.x = Math.floor( ray_light.end.x );
 	    ray_light.end.y = Math.floor( ray_light.end.y );
 		
+		/**
 		skip = !skip; 
 		if( skip ) {
 			return;
 		}
+		**/
 		
-		if( !vectorIn( outline, ray_light.end ) &&  !vectorIn( outline, temp ) )
+		if( !vectorIn( outline, ray_light.end ) ) //&&  !vectorIn( outline, temp ) )
 	    		outline.push( new Vector( ray_light.end.x, ray_light.end.y ) );
     	
     }
@@ -449,10 +460,10 @@ function drawLine(v, angle, r) {
 
 //calls drawLine to create light cone
 function drawCone(v, angle, r, a_offset) {
-	var temp = new Vector( 0, 0 );
+	//var temp = new Vector( 0, 0 );
     var a = toDegrees(angle);
     
-    temp.copy(v)
+    //temp.copy(v)
     //temp.subV( offset );
     
     ctx.strokeStyle = cone.color;
@@ -473,8 +484,8 @@ function drawOutLine() {
 	
 	for( var n = outline.length-1; n >= 0; n-- ) {
 		
-		//if( outline[n].x < draw_window.x || outline[n].y <  draw_window.y ) continue;
-		//if( draw_end.x < outline[n].x || draw_end.y < outline[n].y ) continue;
+		if( outline[n].x < draw_window.x || outline[n].y <  draw_window.y ) continue;
+		if( draw_end.x < outline[n].x || draw_end.y < outline[n].y ) continue;
 		//if( outline[n].x > draw_window.x || outline[n].y >  draw_window.y ) continue;
 		//if( draw_end.x > outline[n].x || draw_end.y > outline[n].y ) continue;
 		
@@ -548,7 +559,9 @@ function init(){
     } while( !checkMap( spawn_v ) ); //check the map
     
     //cone.real.copy()
+    offset.set( w * 0.5, h * 0.5 ),
     offset.subV( dot.pos );
+    prev_offset.copy( offset );
     dot.pos.addV( offset );
     //spawn.origin.addV( offset );
     
@@ -562,13 +575,13 @@ function init(){
 var main = function(){
 	var temp = new Vector( 0, 0 );
 	temp.copy( cone.pos );
-	//temp.subV( spawn_v );
+	temp.subV( offset );
 	if( !game ) return false;
 	
 	//it was fing cast_range all along :(
     cast_range = getMapRange( temp, cone.r );
-    cast_range.start.set( 0, 0 );
-    cast_range.end.set( size_x, size_y );
+    //cast_range.start.set( 0, 0 );
+    //cast_range.end.set( size_x, size_y );
   	update();
   	draw();
   	
