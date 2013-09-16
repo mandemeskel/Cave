@@ -15,7 +15,7 @@ function Ray( origin, angle_r, far ){
 //cast ray and checks for collisions against map objects
 var vector = new Vector(0,0);
 
-//TODO: calculate far after collision so that it could be used in dot.falling()
+//TODO: calculate far after collision so that it could be used in player.falling()
 Ray.prototype.cast = function() {
 	var n = 0;
 	do{

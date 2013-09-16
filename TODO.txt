@@ -12,6 +12,9 @@ standardize( pos or origin? )
 -------------------------------------WARNING!------------------------------------
 -------------------------------Warm Fellings Below-------------------------------
 DONE:
+
+- merged dot and cone objects into player object -/
+
 - Make dot in to a stick figure with a helment and movement animations 
 	-> jsbin it( http://jsbin.com/OGeJikI/5/edit ) -/
 
@@ -42,3 +45,4 @@ new level are generated -/
 
 - cant go to next level, something is wrong with onclick function
 	-> need to offset dot position -/
+

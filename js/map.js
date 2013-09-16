@@ -14,8 +14,7 @@ var size_x = 30,
 	map1 = [];	
 	
 function Box( origin, w, l, solid ){
-	//origin.offset(10, 10);
-  	this.origin = origin; 
+  	this.pos = origin; //top left cornor of box
   	this.w = w;
   	this.l = l;
   	this.solid = solid || false;
@@ -24,11 +23,11 @@ function Box( origin, w, l, solid ){
 Box.prototype.draw = function( fill ) {
 	
 	ctx.strokeStyle = fill || "black";
-	ctx.strokeRect( this.origin.x, this.origin.y, this.w, this.l );
+	ctx.strokeRect( this.pos.x, this.pos.y, this.w, this.l );
 
 	if( this.solid ) {
 	    ctx.fillStyle = fill || "black";
-	    ctx.fillRect( this.origin.x, this.origin.y, this.w, this.l );
+	    ctx.fillRect( this.pos.x, this.pos.y, this.w, this.l );
 	}
 
 };
@@ -36,17 +35,17 @@ Box.prototype.draw = function( fill ) {
 //TODO: remove
 Box.prototype.checkCollision = function(v) {
 	if( !this.solid ) return false;
-  	var max_x = this.origin.x + this.w;
-  	var max_y = this.origin.y + this.l;
+  	var max_x = this.pos.x + this.w;
+  	var max_y = this.pos.y + this.l;
   
-  	if( max_x >= v.x && v.x >= this.origin.x ){
-    	if( max_y >= v.y && v.y >= this.origin.y ) return true;
+  	if( max_x >= v.x && v.x >= this.pos.x ){
+    	if( max_y >= v.y && v.y >= this.pos.y ) return true;
   	}
   	return false;
 };
 
 Box.prototype.set = function( x, y, d, solid ) {
-  	this.origin = new Vector( x, y );
+  	this.pos = new Vector( x, y );
   	this.w = d;
   	this.l = d;
   	this.solid = solid;
