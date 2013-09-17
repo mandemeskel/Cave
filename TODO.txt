@@ -1,4 +1,5 @@
 TODO:
+
 - further optimization of update(), the various draw() functions and 
 raycasting/collision detection 
 	-> outline and drawOutline need opt the most
@@ -8,6 +9,17 @@ standardize( pos or origin? )
 
 - add movement to centered view and gravity
 	-> new method of handeling player movement instead of jamming everything in update
+
+---------------------------------------------------------------------------------
+-----------------------------------PASS THE BUG SPRAY----------------------------
+BUGS:
+
+- player pauses before falling
+
+- fall rate is summed fall after fall, player.ti = undefined?
+
+- outline dots sometimes poke out
+
 
 -------------------------------------WARNING!------------------------------------
 -------------------------------Warm Fellings Below-------------------------------

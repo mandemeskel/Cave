@@ -37,45 +37,26 @@ document.body.appendChild(cnvs);
 //player object
 var player_ray = new Ray( new Vector(0,0), 0, 0 );
 var left, right;
-var player = {pos: new Vector( 210, 210 ),  //offset position
-		   pos_real: function () { 
-		   		var temp = new Vector( 0, 0 ); //regular position
-		   		temp.copy( this.pos );
-		   		temp.subV( offset );
-		   		return temp;
-		   },
-           speed: 10,
-           rad: 10,
-           r: 120,
-           color: 'yellow',
-           angle: toRadians(225),
-           a_offset: 15,
-           quad: function(){ return getQuad( this.angle, true ); },
-           draw: true,
-           vy: 0,
-           climbing: { is: false, left_edge: false },
-           falling: false,
-           fallfrom: map_h,
-           fall: function( time, newtime ) {
-				  if( this.pos.y < map_h-BOX_D ) {
-					  this.ti = this.ti || time;
-					  var dt = (new Date().getTime() / 1000) - this.ti;
-					  this.vy = (G*dt / 1);
-					  
-					  player_ray.set( new Vector( this.pos.x, this.pos.y+this.rad ),
-					  	_90, this.vy );
-					  if( player_ray.cast() ) {
-					  	this.falling = false;
-					  	this.pos.y += player_ray.far;
-					  	
-					  	if( ( this.pos.y - this.fallfrom ) >= 120 ) this.death();
-					  	
-					  } else {
-					  	this.pos.y += this.vy;
-					  }
-					 
-				}  
-			},
+var player = {
+		    pos: new Vector( 210, 210 ),  //offset position
+		    pos_real: function () { //regular position
+				var temp = new Vector( 0, 0 );
+				temp.copy( this.pos );
+				temp.subV( offset );
+				return temp;
+		    },
+            speed: 5,
+            rad: 10,
+            r: 120,
+            color: 'yellow',
+            angle: toRadians(225),
+            a_offset: 15,
+            quad: function(){ return getQuad( this.angle, true ); },
+            draw: true,
+            vy: 0,
+            climbing: { is: false, left_edge: false },
+            falling: false,
+            fallfrom: map_h,
 			bound: function( dir ) {
 				var x = player.pos.x, y = player.pos.y;
 				switch( dir ) {
@@ -98,22 +79,52 @@ var player = {pos: new Vector( 210, 210 ),  //offset position
 				
 				if( this.climbing.is ) return false;
 				
-				player_ray.set( new Vector( this.pos.x+this.rad, this.pos.y+this.rad ),
+				player_ray.set( 
+					new Vector( this.pos.x+this.rad, this.pos.y+this.rad ),
 				 										_90, this.rad );
 				right = !player_ray.cast();
-				player_ray.set( new Vector( this.pos.x-this.rad, this.pos.y+this.rad ),
+				player_ray.set( 
+					new Vector( this.pos.x-this.rad, this.pos.y+this.rad ),
 				 										_90, this.rad );
 				left = !player_ray.cast();
 				
 				if( left && right ) {
+				
 					this.falling = true;
-					if( this.pos.y < this.fallfrom ) this.fallfrom = this.pos.y;
-					if( this.rope_draw ) this.rappelling = true;
+					if( this.pos_real().y < this.fallfrom ) 
+						this.fallfrom = this.pos_real().y;
+					//if( this.rope_draw ) this.rappelling = true;
+					
 				} else if( this.falling && ( !left || !right ) ) {
+				
 					this.falling = false;
 					this.fallfrom = map_h;
-					if( this.rappeling ) this.rappelling = false;
+					//if( this.rappeling ) this.rappelling = false;
+				
 				}
+				return this.falling;
+			},
+            fall: function( time, newtime ) {
+				  if( this.pos_real().y < map_h-BOX_D ) {
+					  this.ti = this.ti || time;
+					  var dt = (new Date().getTime() / 1000) - this.ti;
+					  this.vy = (G*dt / 2);
+					  
+					  player_ray.set( new Vector( this.pos.x, this.pos.y+this.rad ),
+					  	_90, this.vy );
+					  
+					  if( player_ray.cast() ) {
+					  	this.falling = false;
+					  	offset.y -= ( player_ray.far ); //- offset.y);
+					  	
+					  	if( ( this.pos_real().y - this.fallfrom ) >= 120 ) 
+					  		this.death();
+					  	
+					  } else {
+					  	offset.y -= this.vy;
+					  }
+					 
+				}  
 			},
 			death: function() {
 				
@@ -121,6 +132,40 @@ var player = {pos: new Vector( 210, 210 ),  //offset position
 				game = false;
 				document.getElementById( "deadToast" ).className = "toast";
 				
+			},
+			move: function() {
+
+				prev_offset.copy( offset );
+				
+				//this.isFalling();
+				
+				//if( this.falling ) this.fall();
+				
+				if(87 in keysDown) { //W key up, jump, start climbing up
+					if( canMove( this.bound( 1 ), _270,  this.speed ) ) {
+						offset.y += this.speed * 4;
+					}
+				}
+				
+				if(65 in keysDown) { //A key left
+					 if( canMove( this.bound( 0 ), _180) ){
+					 	offset.x += this.speed;
+					 }
+				}
+				
+				if(83 in keysDown && !this.falling ) { //S key down, start climbing down
+					if( canMove( new Vector( this.pos.x, this.pos.y + this.rad ), _90,  this.rad ) ) {
+						offset.y -= this.speed;
+					}
+				}
+				
+				if(68 in keysDown) { //D key right
+					if( canMove( this.bound( 2 ), 0) ){
+						offset.x -= this.speed;
+					}
+				}
+			
+				this.draw = true;
 			}
 		};
 
@@ -131,17 +176,21 @@ var canMove = function( v, angle, rad ){
   	ray_move.set( v, angle, rad || player.rad );
   	move = !ray_move.cast()
   	
+  	/**
   	if( player.rappelling && move ) {
   		
   		if( angle == _90 || angle == _270 ) return true;
+  		
   		if( player.rope.length > player.rope.start.distanceTo( player.pos ) ) {
   			return true;
   		}
+  		
   		if( angle == _180 || angle == 0 ) { //swing left and right
   			return true;
   		}
   		
   	}
+  	**/
   	return move;
   	
 };
@@ -163,6 +212,7 @@ cnvs.onmousedown = function(e){
 		}
 		
 		//cant rappell while rappelling
+		/**
 		if( !player.rope_draw ) {
 			
 			player.rope.set( cord, player.pos );
@@ -175,6 +225,7 @@ cnvs.onmousedown = function(e){
 			player.rappelling = false;
 			
 		}
+		**/
 	}
 };
 
@@ -183,21 +234,22 @@ cnvs.onmousemove = function(e){
   var cord = getCords(cnvs, e.clientX, e.clientY);
   
   player.angle = toRadians( getAngle( player, cord ) );
-
   player.draw = true;
-  player.draw = true;
+  
 };
 
 //keyboard event listeners
-var keysDown = {},
-	moved = false;
+var keysDown = {}, moved = false;
 function keydown(e) { 
 	keysDown[e.keyCode] = true;
 	moved = true;
 }
-addEventListener("keydown", keydown, false);
+function keyup(e) { 
+	delete keysDown[e.keyCode];
+	moved = false;
+}
 
-function keyup(e) { delete keysDown[e.keyCode]; }
+addEventListener("keydown", keydown, false);
 addEventListener("keyup", keyup, false);
 
 
@@ -332,36 +384,13 @@ var update1 = function(){
 
 var update = function() {
 	
-	if( moved ) prev_offset.copy( offset );
+	if( player.isFalling() ) player.fall( new Date().getTime() / 1000 );
 	
-	if(65 in keysDown) { //A key left
-		 if( canMove( player.bound( 0 ), _180) ){
-		 	offset.x += player.speed;
-		 }
+	if( moved ) {
+		player.move();
+		//moved = false;
 	}
-	
-	if(87 in keysDown) { //W key up/jump
-		if( canMove( player.bound( 1 ), _270,  player.speed ) ) {
-			offset.y += player.speed;
-		}
-	}
-		
-	if(83 in keysDown ) { //S key down, start climbing down
-		if( canMove( new Vector( player.pos.x, player.pos.y + player.rad ), _90,  player.rad ) ) {
-			offset.y -= player.speed;
-		}
-	}
-	
-	if(68 in keysDown) { //D key right
-		if( canMove( player.bound( 2 ), 0) ){
-			offset.x -= player.speed;
-		}
-	}
-	
-	if( !prev_offset.equals( offset ) ) {
-		player.draw = true;
-		moved = false;
-	}
+
 }
 
 
@@ -371,8 +400,7 @@ var draw = function(){
 
 	if(player.draw){
 
-		 draw_window.copy( player.pos );
-		 draw_window.subV( offset );
+		 draw_window.copy( player.pos_real() );
 		 draw_window.offset( -(player.r+5), -(player.r+5) );
 		 draw_x = draw_y = (player.r+10)*2;
 		 draw_end.set( draw_x, draw_y );
@@ -397,7 +425,6 @@ var draw = function(){
 		 //draw light cone
 		 ctx.save();
 		 
-		 //tempv.copy( player.pos );
 		 drawCone( player.pos, player.angle, player.r, player.a_offset );
 		
 		 ctx.restore();
@@ -412,7 +439,7 @@ var draw = function(){
 var ray_light = new Ray( new Vector(0,0), 0, 0 );
 var skip = false;
 function drawLine(v, angle, r) {
-	var temp = new Vector( 0, 0 );
+	//var temp = new Vector( 0, 0 );
 	ray_light.set( v, angle, r );
 	ray_light.cast();
     
@@ -445,11 +472,9 @@ function drawLine(v, angle, r) {
 
 //calls drawLine to create light cone
 function drawCone(v, angle, r, a_offset) {
-
     var a = toDegrees(angle);
     
     ctx.strokeStyle = player.color;
-    
     
     for( var n = a - a_offset; n <= a + a_offset; n++) {
     	drawLine( v, toRadians(n), r );
