@@ -4,8 +4,8 @@
  * is delcraed in games.js
  * The map is comprised of boxs which can be solid or not.
  */
-var size_x = 30,
-	size_y = 20,
+var size_x = 60,
+	size_y = 40,
 	fillprob = 40,
 	gens = 2,
 	params = { r1_cutoff: 5, r2_cutoff: 1, reps: 2 },

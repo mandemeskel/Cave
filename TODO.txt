@@ -7,16 +7,21 @@ raycasting/collision detection
 - clean code, rename variables, cull objects/vars/functions and 
 standardize( pos or origin? )
 
-- add movement to centered view and gravity
-	-> new method of handeling player movement instead of jamming everything in update
+- seprate player code from game.js, creater player.js
+
+- fix movement and falling bounds
+	-> cant fall through one box wide spaces
+	-> jumping can get you stuck in cieling
 
 ---------------------------------------------------------------------------------
 -----------------------------------PASS THE BUG SPRAY----------------------------
 BUGS:
 
-- player pauses before falling
+- jumping causes missplaced outline dots
 
-- fall rate is summed fall after fall, player.ti = undefined?
+- togglemap() causes a problem with player.isfalling()
+
+- something is wrong with the if statement that determines if the player dies...
 
 - outline dots sometimes poke out
 
@@ -25,6 +30,19 @@ BUGS:
 -------------------------------Warm Fellings Below-------------------------------
 DONE:
 
+- implement bigger maps -/
+
+- implement falling player -/
+
+- player pauses before falling -/
+	-> player was not been drawn during fall, player.fall needs to set player.draw to true
+
+- fall rate is summed fall after fall, player.ti = undefined? -/
+	-> yep player.ti needs to be set to undefined and player.vy to zero
+	
+- add movement to centered view and gravity -/
+	-> new method of handeling player movement instead of jamming everything in update -/
+	
 - merged dot and cone objects into player object -/
 
 - Make dot in to a stick figure with a helment and movement animations 

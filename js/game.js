@@ -57,6 +57,7 @@ var player = {
             climbing: { is: false, left_edge: false },
             falling: false,
             fallfrom: map_h,
+            ti: undefined, //initial time, start of fall 
 			bound: function( dir ) {
 				var x = player.pos.x, y = player.pos.y;
 				switch( dir ) {
@@ -99,16 +100,19 @@ var player = {
 				
 					this.falling = false;
 					this.fallfrom = map_h;
+					this.ti = undefined;
+					this.vy = 0;
 					//if( this.rappeling ) this.rappelling = false;
 				
 				}
 				return this.falling;
 			},
-            fall: function( time, newtime ) {
+            fall: function( time ) {
 				  if( this.pos_real().y < map_h-BOX_D ) {
+					  
 					  this.ti = this.ti || time;
 					  var dt = (new Date().getTime() / 1000) - this.ti;
-					  this.vy = (G*dt / 2);
+					  this.vy += (G*dt / 2);
 					  
 					  player_ray.set( new Vector( this.pos.x, this.pos.y+this.rad ),
 					  	_90, this.vy );
@@ -117,12 +121,16 @@ var player = {
 					  	this.falling = false;
 					  	offset.y -= ( player_ray.far ); //- offset.y);
 					  	
-					  	if( ( this.pos_real().y - this.fallfrom ) >= 120 ) 
-					  		this.death();
+					  	//if( ( this.pos_real().y - this.fallfrom ) >= 120 ) 
+					  		//this.death();
+						this.ti = undefined;
+						this.vy = 0;
 					  	
 					  } else {
 					  	offset.y -= this.vy;
 					  }
+					  
+					  this.draw = true;
 					 
 				}  
 			},
