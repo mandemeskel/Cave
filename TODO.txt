@@ -7,15 +7,29 @@ raycasting/collision detection
 - clean code, rename variables, cull objects/vars/functions and 
 standardize( pos or origin? )
 
-- seprate player code from game.js, creater player.js
-
-- fix movement and falling bounds
-	-> cant fall through one box wide spaces
-	-> jumping can get you stuck in cieling
+- implement rappeling
 
 ---------------------------------------------------------------------------------
+-----------------------What the game is supposed to be like----------------------
+
+- climbing up and down walls -/ 
+	-> further work is needed, its not near perfect
+
+- rappelling from edges
+
+- maps that are actually like caves
+	-> deformed walls instead of boxes/straight lines
+	-> better and varied map generation
+
+- add water
+
+- add sound( make it creepy but in a pleasant way )
+
+-----------------------------What the game is actually like----------------------
 -----------------------------------PASS THE BUG SPRAY----------------------------
 BUGS:
+
+- rappeling end and start are very far apart
 
 - jumping causes missplaced outline dots
 
@@ -29,6 +43,12 @@ BUGS:
 -------------------------------------WARNING!------------------------------------
 -------------------------------Warm Fellings Below-------------------------------
 DONE:
+
+- fix movement and falling bounds
+	-> cant fall through one box wide spaces -/
+	-> jumping can get you stuck in cieling -/
+	
+- seprate player code from game.js, creater player.js -/
 
 - implement bigger maps -/
 

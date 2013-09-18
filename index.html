@@ -61,17 +61,55 @@
     </body>
 
     <script type="text/javascript"> 
+        var cnvs = document.createElement('canvas');
+        var ctx = cnvs.getContext('2d'),
+            canvas_vector = new Vector( 200, 200 );
+            
+        var map = [],
+            temp_map = [],
+            outline = [],
+            map_h, map_w, 
+            BOX_D = 30,
+            draw_map = false,
+            spawn_v = new Vector( 0, 0 ),
+            w = 1500, h = 700;
+            
+        var offset = new Vector( 0, 0 ),
+            prev_offset = new Vector( 0, 0 );
+            
+        var draw_window = new Vector( 0, 0 ),
+            draw_end =  new Vector( 0, 0 ),
+            draw_x = 0,
+            draw_y = 0,
+            cast_range;
+        
+        cnvs.width = w;
+        cnvs.height = h;
+        document.body.appendChild(cnvs);
+
         //these are helper functions and classes
         var PI = Math.PI,
+            _45 = PI*0.75,
             _90 = PI*0.5,
+            _135 = PI*0.25,
             _180 = PI,
             _270 = PI*1.5,
             _360 = PI*2;
             
         //this class handles all locations on the canvas
         function Vector(x, y) {
-          this.x = x;
-          this.y = y;
+          
+          if( x instanceof Vector ) {
+              
+              this.copy( x );
+              
+          } else {
+          
+            this.x = x || 0;
+            this.y = y || 0;
+           
+          }
+          
         }
         
         Vector.prototype.offset = function(x, y) {
@@ -208,6 +246,8 @@
     
     <script type="text/javascript" src="js/map.js"></script>  
     <script type="text/javascript" src="js/ray.js"></script>
+    <script type="text/javascript" src="js/rope.js"></script> 
+    <script type="text/javascript" src="js/player.js"></script> 
     <script type="text/javascript" src="js/game.js"></script> 
     
 </html>

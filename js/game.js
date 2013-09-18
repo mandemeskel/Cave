@@ -2,208 +2,14 @@
  * @author Work
  * The main game file, where everything comes together and where the canvas is created.
  */
-var cnvs = document.createElement('canvas');
-var ctx = cnvs.getContext('2d'),
-	canvas_vector = new Vector( 200, 200 );
-var map = [],
-	temp_map = [],
-	outline = [],
-	map_h, map_w, 
-	BOX_D = 30,
-	draw_map = false;
-	spawn = new Box( new Vector( 0, 0 ), 0, 0, 0 ),
-	spawn_v = new Vector( 0, 0 );
+var spawn = new Box( new Vector( 0, 0 ), 0, 0, 0 );
+/*
 var real_x = ( BOX_D * size_x ),
-	real_y = ( BOX_D * size_y );
+    real_y = ( BOX_D * size_y );
 var w = real_x > document.width ? real_x : document.width,
-	h = real_y > document.height ? real_y : document.height;
-	w = 1500, h = 700;
-var offset = new Vector( 0, 0 ),
-	prev_offset = new Vector( 0, 0 );
-
-var G = 9.8,
-    wall = map_h-100;
-    
-var draw_window = new Vector( 0, 0 ),
-	draw_end =  new Vector( 0, 0 ),
-	draw_x = 0,
-	draw_y = 0;
-var cast_range;
-
-cnvs.width = w;
-cnvs.height = h;
-document.body.appendChild(cnvs);
-
-//player object
-var player_ray = new Ray( new Vector(0,0), 0, 0 );
-var left, right;
-var player = {
-		    pos: new Vector( 210, 210 ),  //offset position
-		    pos_real: function () { //regular position
-				var temp = new Vector( 0, 0 );
-				temp.copy( this.pos );
-				temp.subV( offset );
-				return temp;
-		    },
-            speed: 5,
-            rad: 10,
-            r: 120,
-            color: 'yellow',
-            angle: toRadians(225),
-            a_offset: 15,
-            quad: function(){ return getQuad( this.angle, true ); },
-            draw: true,
-            vy: 0,
-            climbing: { is: false, left_edge: false },
-            falling: false,
-            fallfrom: map_h,
-            ti: undefined, //initial time, start of fall 
-			bound: function( dir ) {
-				var x = player.pos.x, y = player.pos.y;
-				switch( dir ) {
-					case 0:	//left
-						x -= player.rad
-					break;
-					case 1:	//top
-						y -= player.rad;
-					break;
-					case 2:	//right
-						x += player.rad;
-					break;
-					case 3:	//bot
-						y += player.rad;
-					break;
-				}
-				return new Vector( x, y );
-			},
-			isFalling: function() {
-				
-				if( this.climbing.is ) return false;
-				
-				player_ray.set( 
-					new Vector( this.pos.x+this.rad, this.pos.y+this.rad ),
-				 										_90, this.rad );
-				right = !player_ray.cast();
-				player_ray.set( 
-					new Vector( this.pos.x-this.rad, this.pos.y+this.rad ),
-				 										_90, this.rad );
-				left = !player_ray.cast();
-				
-				if( left && right ) {
-				
-					this.falling = true;
-					if( this.pos_real().y < this.fallfrom ) 
-						this.fallfrom = this.pos_real().y;
-					//if( this.rope_draw ) this.rappelling = true;
-					
-				} else if( this.falling && ( !left || !right ) ) {
-				
-					this.falling = false;
-					this.fallfrom = map_h;
-					this.ti = undefined;
-					this.vy = 0;
-					//if( this.rappeling ) this.rappelling = false;
-				
-				}
-				return this.falling;
-			},
-            fall: function( time ) {
-				  if( this.pos_real().y < map_h-BOX_D ) {
-					  
-					  this.ti = this.ti || time;
-					  var dt = (new Date().getTime() / 1000) - this.ti;
-					  this.vy += (G*dt / 2);
-					  
-					  player_ray.set( new Vector( this.pos.x, this.pos.y+this.rad ),
-					  	_90, this.vy );
-					  
-					  if( player_ray.cast() ) {
-					  	this.falling = false;
-					  	offset.y -= ( player_ray.far ); //- offset.y);
-					  	
-					  	//if( ( this.pos_real().y - this.fallfrom ) >= 120 ) 
-					  		//this.death();
-						this.ti = undefined;
-						this.vy = 0;
-					  	
-					  } else {
-					  	offset.y -= this.vy;
-					  }
-					  
-					  this.draw = true;
-					 
-				}  
-			},
-			death: function() {
-				
-				player.color = "black";
-				game = false;
-				document.getElementById( "deadToast" ).className = "toast";
-				
-			},
-			move: function() {
-
-				prev_offset.copy( offset );
-				
-				//this.isFalling();
-				
-				//if( this.falling ) this.fall();
-				
-				if(87 in keysDown) { //W key up, jump, start climbing up
-					if( canMove( this.bound( 1 ), _270,  this.speed ) ) {
-						offset.y += this.speed * 4;
-					}
-				}
-				
-				if(65 in keysDown) { //A key left
-					 if( canMove( this.bound( 0 ), _180) ){
-					 	offset.x += this.speed;
-					 }
-				}
-				
-				if(83 in keysDown && !this.falling ) { //S key down, start climbing down
-					if( canMove( new Vector( this.pos.x, this.pos.y + this.rad ), _90,  this.rad ) ) {
-						offset.y -= this.speed;
-					}
-				}
-				
-				if(68 in keysDown) { //D key right
-					if( canMove( this.bound( 2 ), 0) ){
-						offset.x -= this.speed;
-					}
-				}
-			
-				this.draw = true;
-			}
-		};
-
-//player movement collision detection happens here
-var ray_move = new Ray( new Vector(0,0), 0, 0 );
-var canMove = function( v, angle, rad ){
-	var move = false;
-  	ray_move.set( v, angle, rad || player.rad );
-  	move = !ray_move.cast()
-  	
-  	/**
-  	if( player.rappelling && move ) {
-  		
-  		if( angle == _90 || angle == _270 ) return true;
-  		
-  		if( player.rope.length > player.rope.start.distanceTo( player.pos ) ) {
-  			return true;
-  		}
-  		
-  		if( angle == _180 || angle == 0 ) { //swing left and right
-  			return true;
-  		}
-  		
-  	}
-  	**/
-  	return move;
-  	
-};
-
-
+    h = real_y > document.height ? real_y : document.height;
+*/          
+            
 //mouse and keyboard events
 var click = false;
 cnvs.onmousedown = function(e){
@@ -216,9 +22,19 @@ cnvs.onmousedown = function(e){
 		//if( player.pos.distanceTo( spawn.pos ) < (BOX_D*2) ) {
 		if( player.pos_real().distanceTo( spawn.pos ) < (BOX_D*2) ) {
 			document.getElementById( "nextLvlToast" ).className = "toast";
-			return false;
 		}
 		
+		if( !player.rappelling ) {
+			
+			player.rope = new Rope( cord, player.pos );
+			if( player.rope.ishoocked ) {
+				player.rappelling = true;
+				alert( "hooked!" );
+			}
+		} else {
+			
+			player.rappelling = false;
+		}
 		//cant rappell while rappelling
 		/**
 		if( !player.rope_draw ) {
@@ -427,6 +243,9 @@ var draw = function(){
 		 
 		 //draw spawn box/entrance/exit
 		 spawn.draw( "yellow" );
+		 
+		 //draw rope
+		 if( player.rappelling ) player.rope.draw();
 		 
 		 ctx.restore();
 		      
