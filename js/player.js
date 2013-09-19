@@ -16,7 +16,7 @@ var player = {
 				return temp;
 		    },
             speed: 2,
-            jumpvar: 2,
+            jumpvar: 4,
             rad: 5,
             r: 120,
             color: 'yellow',
@@ -24,8 +24,6 @@ var player = {
             a_offset: 15,
             quad: function(){ return getQuad( this.angle, true ); },
             draw: true,
-            rappelling: false,
-            rope: false,
             vy: 0,
             climbing: false,
             falling: false,
@@ -69,17 +67,6 @@ var player = {
 				
 				if( this.climbing ) return false;
 				
-				/**
-				player_ray.set( 
-					new Vector( this.pos.x+this.rad, this.pos.y+this.rad ),
-				 										_90, this.rad );
-				right = !player_ray.cast();
-				player_ray.set( 
-					new Vector( this.pos.x-this.rad, this.pos.y+this.rad ),
-				 										_90, this.rad );
-				left = !player_ray.cast();
-				**/
-				
 				left = canMove( this.bound( bounds.bot_left ), _90);
 				right = canMove( this.bound( bounds.bot_right ), _90);
 
@@ -88,7 +75,6 @@ var player = {
 					this.falling = true;
 					if( this.pos_real().y < this.fallfrom ) 
 						this.fallfrom = this.pos_real().y;
-					//if( this.rope_draw ) this.rappelling = true;
 					
 				} else if( this.falling && ( !left || !right ) ) {
 				
@@ -96,7 +82,6 @@ var player = {
 					this.fallfrom = map_h;
 					this.ti = undefined;
 					this.vy = 0;
-					//if( this.rappeling ) this.rappelling = false;
 				
 				}
 				return this.falling;
@@ -108,18 +93,16 @@ var player = {
 					  var dt = (new Date().getTime() / 1000) - this.ti;
 					  this.vy += (G*dt / 2);
 					  
-					  //player_ray.set( new Vector( this.pos.x, this.pos.y+this.rad ),
-					  //	_90, this.vy );
 					  player_ray.set( this.bound( bounds.bot ), _90, this.vy );
 					  
 					  if( player_ray.cast() ) {
 					  	this.falling = false;
-					  	offset.y -= ( player_ray.far ); //- offset.y);
+					  	offset.y -= ( player_ray.far );
 					  	
-					  	//if( ( this.pos_real().y - this.fallfrom ) >= 120 ) 
-					  		//this.death();
+					  	if( ( this.pos_real().y - this.fallfrom ) >= 200 ) 
+					  		this.death();
 						this.ti = undefined;
-						this.vy = 0; //this.speed * this.jumpvar;
+						this.vy = 0;
 					  	
 					  } else {
 					  	
@@ -138,45 +121,7 @@ var player = {
 				document.getElementById( "deadToast" ).className = "toast";
 				
 			},
-			climb: function() {
-					
-				left = canMove( this.bound( bounds.left ), _180);
-				right = canMove( this.bound( bounds.right ), 0);
-				
-				if( this.climbing ) {
-					
-					this.climbing = !( left && right ); // this.climbing = false;
-					
-					//move player onto edge 
-					if( !left ) {
-						this.offset += this.rad;
-					} else {
-						this.offset -= this.rad;
-					}
-					
-				//initiate climbing
-				} else {
-					
-					//climb down
-					if( left && right ) {
-						
-						if( canMove( this.bound( bounds.bot_left ), _90 ) 
-						 	|| canMove( this.bound( bounds.bot_right ), _90 ) )
-						 		this.climbing = true;
-					//climb up
-					} else if( left || right ){
-						
-						if( canMove( this.bound( bounds.top_left ), _270 ) 
-						 	|| canMove( this.bound( bounds.top_right ), _270 ) )
-						 		this.climbing = true;
-						
-					}
-				
-				}
-			},
 			jump: function() {
-				//this.vy = this.speed * this.jumpvar;
-				//this.jumpvar *= this.speed;
 				player_ray.set( bounds.top, _270, this.speed * this.jumpvar );
 				
 				if( player_ray.cast() ) {
@@ -189,14 +134,9 @@ var player = {
 
 				prev_offset.copy( offset );
 				
-				//this.isFalling();
-				
-				//if( this.falling ) this.fall();
-				
 				if(87 in keysDown) { //W key up, jump, start climbing up
 					if( canMove( this.bound( 1 ), _270,  this.speed ) ) {
 						if( !this.climbing ) {
-							//offset.y += this.speed * 4; //put jump function here
 							this.jump();
 						} else {
 							offset.y += this.speed;
@@ -242,22 +182,6 @@ var canMove = function( v, angle, rad ){
 	var move = false;
   	ray_move.set( v, angle, rad || player.rad );
   	move = !ray_move.cast()
-  	
-  	/**
-  	if( player.rappelling && move ) {
-  		
-  		if( angle == _90 || angle == _270 ) return true;
-  		
-  		if( player.rope.length > player.rope.start.distanceTo( player.pos ) ) {
-  			return true;
-  		}
-  		
-  		if( angle == _180 || angle == 0 ) { //swing left and right
-  			return true;
-  		}
-  		
-  	}
-  	**/
   	return move;
   	
 };

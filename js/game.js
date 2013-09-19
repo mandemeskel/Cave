@@ -2,13 +2,7 @@
  * @author Work
  * The main game file, where everything comes together and where the canvas is created.
  */
-var spawn = new Box( new Vector( 0, 0 ), 0, 0, 0 );
-/*
-var real_x = ( BOX_D * size_x ),
-    real_y = ( BOX_D * size_y );
-var w = real_x > document.width ? real_x : document.width,
-    h = real_y > document.height ? real_y : document.height;
-*/          
+var spawn = new Box( new Vector( 0, 0 ), 0, 0, 0 );       
             
 //mouse and keyboard events
 var click = false;
@@ -19,37 +13,10 @@ cnvs.onmousedown = function(e){
 	//can only hook rappell rope to near by box
 	if( cord.distanceTo( player.pos ) < BOX_D ) {
 		
-		//if( player.pos.distanceTo( spawn.pos ) < (BOX_D*2) ) {
 		if( player.pos_real().distanceTo( spawn.pos ) < (BOX_D*2) ) {
 			document.getElementById( "nextLvlToast" ).className = "toast";
 		}
 		
-		if( !player.rappelling ) {
-			
-			player.rope = new Rope( cord, player.pos );
-			if( player.rope.ishoocked ) {
-				player.rappelling = true;
-				alert( "hooked!" );
-			}
-		} else {
-			
-			player.rappelling = false;
-		}
-		//cant rappell while rappelling
-		/**
-		if( !player.rope_draw ) {
-			
-			player.rope.set( cord, player.pos );
-			player.rope.draw();
-			player.rope_draw = true;
-			
-		} else {
-			
-			player.rope_draw = false;
-			player.rappelling = false;
-			
-		}
-		**/
 	}
 };
 
@@ -76,143 +43,12 @@ function keyup(e) {
 addEventListener("keydown", keydown, false);
 addEventListener("keyup", keyup, false);
 
-
-//updates player position
-var update1 = function(){
-
-  player.isFalling();
-  player.prev.copy( player.pos );
-  
-  	//A key left
-  	if(65 in keysDown){ 
-    	if( canMove( player.bound( 0 ), _180) ){
-    		player.pos.x -= player.speed;
-        	
-        	if( player.climbing.is && !player.climbing.left_edge ) player.climbing.is = false;
-        	
-        	player.draw = true;
-		
-    	}
-  	}
-
-	//W key up/jump
-  	if(87 in keysDown){ 
-  		if( !player.climbing.is ) {
-  			if( canMove( player.bound( 1 ), _270,  player.speed ) ) {
-  				
-  				if( !canMove( new Vector( player.pos.x - player.rad, player.pos.y - player.rad ), _180 ) ) {
-  					player.pos.y -= player.speed;
-		        	player.climbing.is = true;
-		    		player.climbing.left_edge = true;
-		        	player.draw = true;
-  				} else if ( !canMove( new Vector( player.pos.x + player.rad, player.pos.y - player.rad ), 0 ) ) {
-  					player.pos.y -= player.speed;
-		    		player.climbing.is = true;
-		    		player.climbing.left_edge = false;
-		        	player.draw = true;
-  				} else {
-  					if( canMove( player.bound( 1 ), _270,  player.speed*4 ) ) {
-	        			player.pos.y -= player.speed*4;
-	        			player.draw = true;
-	        		} 
-	        	}
-			}
-  		} else {
-  			if( canMove( player.bound( 1 ), _270,  player.speed ) ) {
-	        	player.pos.y -= player.speed;
-	        	player.draw = true;
-	        	
-	        	if( canMove( new Vector( player.pos.x + player.rad, player.pos.y - player.rad ), 0 ) 
-	        		&& !player.climbing.left_edge ) {
-	        		player.climbing.is = false; 
-	       		} else if( canMove( new Vector( player.pos.x - player.rad, player.pos.y - player.rad ), _180 )
-	       			&& player.climbing.left_edge ) {
-	       			player.climbing.is = false; 	
-	       		}
-			}
-  		}
-  	}
-  
-  	//S key down, start climbing down
-  	if(83 in keysDown ){ 
-  		if( !player.climbing.is ) {
-  			//climbing a wall on the right side
-	  		if( canMove( new Vector( player.pos.x, player.pos.y + player.rad ), _90,  player.rad*0.5 ) 
-	  			&& !canMove( new Vector( player.pos.x - player.rad, player.pos.y + player.rad ),
-	    	 _90,  player.rad*0.5 ) ) {
-	        	player.pos.y += player.speed;
-	        	player.climbing.is = true;
-	    		player.climbing.left_edge = false;
-	        	player.draw = true;
-	       	//climbing a wall on the left side
-	    	} else if( canMove( new Vector( player.pos.x, player.pos.y + player.rad ), _90,  player.rad*0.5 ) 
-	    	&& !canMove( new Vector( player.pos.x+player.rad, player.pos.y + player.rad ), _90,  player.rad*0.5 ) ) { 		
-	    		player.pos.y += player.speed;
-	    		player.climbing.is = true;
-	    		player.climbing.left_edge = true;
-	        	player.draw = true;
-	    	}
-    	} else {
-  			//climbing a wall on the right side
-    		if( canMove( new Vector( player.pos.x, player.pos.y + player.rad ), _90,  player.rad*0.5 ) 
-	  			&& !canMove( new Vector( player.pos.x + player.rad, player.pos.y + player.rad ), 0 ) ) {
-	        	player.pos.y += player.speed;
-	        	player.climbing.is = true;
-	    		player.climbing.left_edge = false;
-	        	player.draw = true;
-	       	//climbing a wall on the left side
-	    	} else if( canMove( new Vector( player.pos.x, player.pos.y + player.rad ),
-	    	 _90,  player.rad*0.5 ) && 
-	    	 !canMove( new Vector( player.pos.x - player.rad, player.pos.y + player.rad ), _180 )) { 		
-	    		player.pos.y += player.speed;
-	    		player.climbing.is = true;
-	    		player.climbing.left_edge = true;
-	        	player.draw = true;
-	    	} else {
-	    		player.climbing.is = false; 
-	    	}
-    	}
-  	}
-  
-	//falling 
-  	if( player.falling && !player.rappelling ) {
-    	if( canMove( player.bound( 3 ), _90, player.rad*0.5 ) ){
-        
-        	player.fall( new Date().getTime() / 1000 );
-        	player.draw = true;
-        
-	    }else{
-	    	player.vy = 0;
-	    	player.falling = false;
-	    	player.ti = undefined;
-	    }
-	}else{
-		player.vy = 0;
-		player.falling = false;
-	    player.ti = undefined;
-	}
- 
-	//D key right
-	if(68 in keysDown){ 
-		if( canMove( player.bound( 2 ), 0) ){
-			player.pos.x += player.speed;
-			player.draw = true;
-			
-			if( player.climbing.is && player.climbing.left_edge ) player.climbing.is = false;
-		}
- 	}
-  
-
-};
-
-
 var update = function() {
 	
 	if( player.isFalling() ) player.fall( new Date().getTime() / 1000 );
 	
 	if( moved ) {
 		player.move();
-		//moved = false;
 	}
 
 }
@@ -236,16 +72,12 @@ var draw = function(){
 		 ctx.save();
 		 
 		 ctx.translate( offset.x, offset.y );
-		 //ctx.clearRect( draw_window.x, draw_window.y, draw_x, draw_y );
 		 
 		 if( draw_map ) drawMap( BOX_D );
 		 drawOutLine();
 		 
 		 //draw spawn box/entrance/exit
 		 spawn.draw( "yellow" );
-		 
-		 //draw rope
-		 if( player.rappelling ) player.rope.draw();
 		 
 		 ctx.restore();
 		      
@@ -266,7 +98,6 @@ var draw = function(){
 var ray_light = new Ray( new Vector(0,0), 0, 0 );
 var skip = false;
 function drawLine(v, angle, r) {
-	//var temp = new Vector( 0, 0 );
 	ray_light.set( v, angle, r );
 	ray_light.cast();
     
@@ -279,18 +110,10 @@ function drawLine(v, angle, r) {
     if( ray_light.collision ) { 
     	
     	ray_light.end.subV( offset );
-	    //temp.set( Math.ceil( ray_light.end.x ), Math.ceil( ray_light.end.x ) )
 	    ray_light.end.x = Math.floor( ray_light.end.x );
 	    ray_light.end.y = Math.floor( ray_light.end.y );
 		
-		/**
-		skip = !skip; 
-		if( skip ) {
-			return;
-		}
-		**/
-		
-		if( !vectorIn( outline, ray_light.end ) ) //&&  !vectorIn( outline, temp ) )
+		if( !vectorIn( outline, ray_light.end ) )
 	    		outline.push( new Vector( ray_light.end.x, ray_light.end.y ) );
     	
     }
@@ -407,7 +230,6 @@ var main = function(){
 	temp.subV( offset );
 	if( !game ) return false;
 	
-	//it was fing cast_range all along :(
     cast_range = getMapRange( temp, player.r );
   	update();
   	draw();

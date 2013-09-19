@@ -13,8 +13,6 @@
       
       <button onclick="init();" > newmap </button>
       <button onclick="toggleMap();" > toggle map </button>
-      <button onclick=" player.prev.copy(player.pos); player.pos.set(200, 200); player.draw = true;" >
-           reset position(unstuck) </button>
 
         <!-- next level dialog box -->
         <div id="nextLvlToast" class="toast invis">
@@ -45,6 +43,8 @@
               <b> S </b> - Climb down when over an edge
             <br>
               <b> D </b> - Move right/Stop climbing
+            <br>
+              <b> C </b> - Press when next to a wall or edge to start climbing
             <br>
               <b> RMB </b> - Use exit to lleave cave
             <br>
@@ -246,7 +246,6 @@
     
     <script type="text/javascript" src="js/map.js"></script>  
     <script type="text/javascript" src="js/ray.js"></script>
-    <script type="text/javascript" src="js/rope.js"></script> 
     <script type="text/javascript" src="js/player.js"></script> 
     <script type="text/javascript" src="js/game.js"></script> 
     
