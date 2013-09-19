@@ -30,6 +30,7 @@ standardize( pos or origin? )
 BUGS:
 
 - rappeling end and start are very far apart
+	-> something is wrong with values passed or when it is drawn
 
 - jumping causes missplaced outline dots
 
