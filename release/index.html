@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <meta charset=utf-8 />
+
+        <link rel="stylesheet" type="text/css" href="static/style.css">
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js">
+        </script>
+        <title>Cave</title>
+    </head>
+    
+    <body style="background-color:black;">
+      
+        <div style="width: 50%;">
+          
+            <button onclick="init();" > newmap </button>
+            <button onclick="draw_outline = !draw_outline;" > toggle outline </button>
+            <button onclick="toggleAudio();" > toggle audio </button>
+        
+        </div>
+        
+        <!-- next level dialog box -->
+        <div id="nextLvlToast" class="toast invis">
+            <p class="title">Paused</p>
+            <p>Go to the next level?</p>
+            <button onclick="handelNextLvl( true )"> Yes </button>
+            <button onclick="handelNextLvl( false )"> No </button>
+        </div>
+          
+          
+         <!--- dead player dialog box -->
+        <div id="deadToast" class="toast invis">
+            <p class="title">Death...</p>
+            <p>You have fallen to your doom, play again?</p>
+            <button onclick="handelDeath( true )"> Yes </button>
+            <button onclick="handelDeath( false )"> No </button>
+        </div>
+          
+        <!-- start -->
+        <div id="introToast" class="toast ">
+            <p class="title">Cave</p>
+              
+            <p class="info" > 
+              <b> W </b> - Jump/Move Up/Climb up when next to wall
+            <br>
+              <b> A </b> - Move left
+            <br>
+              <b> S </b> - Climb down when over an edge
+            <br>
+              <b> D </b> - Move right
+            <br>
+              <b> SPACE </b> - Create camp site
+            <br>
+              <b> RMB </b> - Use exit to lleave cave/Start Rappelling
+            <br>
+              <b> MOUSE </b> - Move mouse to move light cone
+            <br>
+            <br>
+                Go forth and explore but be carefull steep falls can kill you and headlight will run out. Once you have
+              explored one cave go back into the entrace ( the yellow box ) and click on it to lleave.
+            </p>
+            
+            <button onclick="init();"> Start </button>
+        </div>
+                  
+    </body>
+    
+    <script type="text/javascript" src="js/gameMini.js"></script> 
+    
+</html>

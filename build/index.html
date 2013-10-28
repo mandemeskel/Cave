@@ -5,15 +5,22 @@
         <meta charset=utf-8 />
 
         <link rel="stylesheet" type="text/css" href="static/style.css">
-
+        <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js">
+        </script>
         <title>Cave</title>
     </head>
     
     <body style="background-color:black;">
       
-      <button onclick="init();" > newmap </button>
-      <button onclick="toggleMap();" > toggle map </button>
-
+        <div style="width: 50%;">
+          
+            <button onclick="init();" > newmap </button>
+            <!-- <button onclick="toggleMap();" > toggle map </button> -->
+            <button onclick="draw_outline = !draw_outline;" > toggle outline </button>
+            <button onclick="toggleAudio();" > toggle audio </button>
+        
+        </div>
+        
         <!-- next level dialog box -->
         <div id="nextLvlToast" class="toast invis">
             <p class="title">Paused</p>
@@ -32,26 +39,30 @@
         </div>
           
         <!-- start -->
+        <!-- http://stackoverflow.com/questions/8044634/
+            select-parent-all-children-elements-while-using-mouseover-jquery 
+            mouseenter/mouseleave are better for aoe mouse events like this
+            onmouseenter=" addShadow( this ); " onmouseleave=" addShadow( this ); "-->
         <div id="introToast" class="toast ">
             <p class="title">Cave</p>
               
             <p class="info" > 
-              <b> W </b> - Jump/Climb up when next to a wall
+              <b> W </b> - Jump/Move Up/Climb up when next to wall
             <br>
-              <b> A </b> - Move left/Stop climbing
+              <b> A </b> - Move left
             <br>
               <b> S </b> - Climb down when over an edge
             <br>
-              <b> D </b> - Move right/Stop climbing
+              <b> D </b> - Move right
             <br>
-              <b> C </b> - Press when next to a wall or edge to start climbing
+              <b> SPACE </b> - Create camp site
             <br>
-              <b> RMB </b> - Use exit to lleave cave
+              <b> RMB </b> - Use exit to lleave cave/Start Rappelling
             <br>
               <b> MOUSE </b> - Move mouse to move light cone
             <br>
             <br>
-                Go forth and explore but becarefull steep falls can kill you. Once you have
+                Go forth and explore but be carefull steep falls can kill you and headlight will run out. Once you have
               explored one cave go back into the entrace ( the yellow box ) and click on it to lleave.
             </p>
             
@@ -61,6 +72,7 @@
     </body>
 
     <script type="text/javascript"> 
+        //these are helper functions and classes
         var cnvs = document.createElement('canvas');
         var ctx = cnvs.getContext('2d'),
             canvas_vector = new Vector( 200, 200 );
@@ -87,7 +99,6 @@
         cnvs.height = h;
         document.body.appendChild(cnvs);
 
-        //these are helper functions and classes
         var PI = Math.PI,
             _45 = PI*0.75,
             _90 = PI*0.5,
@@ -95,6 +106,21 @@
             _180 = PI,
             _270 = PI*1.5,
             _360 = PI*2;
+            
+            
+        //add some events here just for fun and show
+        //mouseenter and mouselleave work in mozilla but otherwise are custom events
+        //requiring jquery
+        $(".toast").bind({
+            
+            mouseenter: function() {
+                $( ".toast" ).addClass( "shadow" );
+            },
+            mouseleave: function() {
+                $( ".toast" ).removeClass( "shadow" );
+            },
+            
+        });
             
         //this class handles all locations on the canvas
         function Vector(x, y) {
@@ -147,10 +173,10 @@
         };
         
         //gets angle from mouse position, obj is the player
-        function getAngle( obj, mouse ){
+        function getAngle( v, mouse ){
            var angle,
-             ox = obj.pos.x - mouse.x,
-             oy = obj.pos.y - mouse.y;
+             ox = v.x - mouse.x,
+             oy = v.y - mouse.y;
           
          if( ox !== 0 ){
             angle = toDegrees( Math.atan( oy/ox ) );
@@ -223,8 +249,14 @@
         
         //handels player response for death toast dialog 
         function handelDeath( yes ) {
-            if( yes ) {
-                init();
+            if( yes ) { //respawn from nearest camp if there is one
+                if ( player.respawn() )  {               
+                    player.draw = true;
+                    game = true;
+                    player.color = 'yellow';
+                } else {
+                    init(); 
+                }
             } else {
                 ctx.clearRect( 0, 0, w, h );
                 document.getElementById( "introToast" ).className = "toast";
@@ -241,11 +273,45 @@
         function getRandomInt(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
+        
+        //http://stackoverflow.com/questions/195951/change-an-elements-css-class-with-javascript
+        //adds shadow to toasts when mouse over - no jquery much harder
+        function addShadow( e ) {
+            if ( !e.className.match(/(?:^|\s)shadow(?!\S)/) ) {
+                e.className += ' shadow ';
+            } else {
+                e.className = e.className.replace( /(?:^|\s)shadow(?!\S)/g , '' );
+            }
+        }
+        
+        //toggle sounds
+        function toggleAudio() {
+            sound = !sound; 
+            if( !sound ) {
+                
+                background_audio.pause(); 
+                //go through sounds ending any sounds currently playing
+                for( var n=0; n < sounds.length; n++ ) {
+                    //unfortunetly there is no isPlaying function/attribute :(
+                    if( sounds[ n ].currentTime != 0 )
+                        //nor is there a end() function
+                        sounds[ n ].currentTime = 0; 
+                        //gotta pause it or else it will just play from start
+                        sounds[ n ].pause();
+                }
+             
+            } else {
+                
+                background_audio.play();
+                
+            }
+        }
 
     </script>
     
     <script type="text/javascript" src="js/map.js"></script>  
     <script type="text/javascript" src="js/ray.js"></script>
+    <script type="text/javascript" src="js/rope.js"></script> 
     <script type="text/javascript" src="js/player.js"></script> 
     <script type="text/javascript" src="js/game.js"></script> 
     

@@ -15,6 +15,7 @@ function Ray( origin, angle_r, far ){
 //cast ray and checks for collisions against map objects
 var vector = new Vector(0,0);
 
+//TODO: calculate far after collision so that it could be used in player.falling()
 Ray.prototype.cast = function() {
 	var n = 0;
 	do{
@@ -186,7 +187,7 @@ Ray.prototype.calcEndQ = function( q ) {
 var max_x, max_y;
 function checkCollision( box_v, v ) {
 	
-	box_v.addV( offset );
+	//box_v.addV( offset );
 	max_x = box_v.x + BOX_D;
   	max_y = box_v.y + BOX_D;
   	
