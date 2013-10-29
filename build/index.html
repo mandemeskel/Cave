@@ -14,10 +14,10 @@
       
         <div style="width: 50%;">
           
-            <button onclick="init();" > newmap </button>
+            <button type="button" onclick="Game.init();" > newmap </button>
             <!-- <button onclick="toggleMap();" > toggle map </button> -->
-            <button onclick="draw_outline = !draw_outline;" > toggle outline </button>
-            <button onclick="toggleAudio();" > toggle audio </button>
+            <button type="button" onclick="toggleOutline();" > toggle outline </button>
+            <button type="button" onclick="toggleAudio();" > toggle audio </button>
         
         </div>
         
@@ -25,8 +25,8 @@
         <div id="nextLvlToast" class="toast invis">
             <p class="title">Paused</p>
             <p>Go to the next level?</p>
-            <button onclick="handelNextLvl( true )"> Yes </button>
-            <button onclick="handelNextLvl( false )"> No </button>
+            <button type="button" onclick="handelNextLvl( true )"> Yes </button>
+            <button type="button" onclick="handelNextLvl( false )"> No </button>
         </div>
           
           
@@ -34,8 +34,8 @@
         <div id="deadToast" class="toast invis">
             <p class="title">Death...</p>
             <p>You have fallen to your doom, play again?</p>
-            <button onclick="handelDeath( true )"> Yes </button>
-            <button onclick="handelDeath( false )"> No </button>
+            <button type="button" onclick="handelDeath( true )"> Yes </button>
+            <button type="button" onclick="handelDeath( false )"> No </button>
         </div>
           
         <!-- start -->
@@ -66,37 +66,22 @@
               explored one cave go back into the entrace ( the yellow box ) and click on it to lleave.
             </p>
             
-            <button onclick="init();"> Start </button>
+            <button onclick="Game.init();"> Start </button>
         </div>
                   
     </body>
 
     <script type="text/javascript"> 
-        //these are helper functions and classes
         var cnvs = document.createElement('canvas');
-        var ctx = cnvs.getContext('2d'),
-            canvas_vector = new Vector( 200, 200 );
+        var ctx = cnvs.getContext('2d');
             
         var map = [],
             temp_map = [],
-            outline = [],
             map_h, map_w, 
-            BOX_D = 30,
-            draw_map = false,
-            spawn_v = new Vector( 0, 0 ),
-            w = 1500, h = 700;
-            
-        var offset = new Vector( 0, 0 ),
-            prev_offset = new Vector( 0, 0 );
-            
-        var draw_window = new Vector( 0, 0 ),
-            draw_end =  new Vector( 0, 0 ),
-            draw_x = 0,
-            draw_y = 0,
-            cast_range;
-        
-        cnvs.width = w;
-        cnvs.height = h;
+            BOX_D = 30;
+
+        cnvs.width = 1500;
+        cnvs.height = 700;
         document.body.appendChild(cnvs);
 
         var PI = Math.PI,
@@ -106,7 +91,6 @@
             _180 = PI,
             _270 = PI*1.5,
             _360 = PI*2;
-            
             
         //add some events here just for fun and show
         //mouseenter and mouselleave work in mozilla but otherwise are custom events
@@ -239,23 +223,22 @@
         }
         
         function toggleMap(){
-          draw_map = !draw_map;
-          if( draw_map ) {
+          Game.draw_map = !Game.draw_map;
+          if( Game.draw_map ) {
             document.body.style.background = "blue";
           } else {
             document.body.style.background = "black";
           }
         }
         
-        //handels player response for death toast dialog 
         function handelDeath( yes ) {
             if( yes ) { //respawn from nearest camp if there is one
                 if ( player.respawn() )  {               
                     player.draw = true;
-                    game = true;
+                    Game.start = true;
                     player.color = 'yellow';
                 } else {
-                    init(); 
+                    Game.init(); 
                 }
             } else {
                 ctx.clearRect( 0, 0, w, h );
@@ -266,7 +249,7 @@
         
         //handels player response for next level toast dialog 
         function handelNextLvl( yes ) {
-            if( yes ) init();
+            if( yes ) Game.init();
             document.getElementById( "nextLvlToast" ).className = "invis";
         }
         
@@ -284,29 +267,32 @@
             }
         }
         
-        //toggle sounds
         function toggleAudio() {
-            sound = !sound; 
-            if( !sound ) {
+            Game.sound = !Game.sound; 
+            if( !Game.sound ) {
                 
-                background_audio.pause(); 
+                Game.background_audio.pause(); 
                 //go through sounds ending any sounds currently playing
-                for( var n=0; n < sounds.length; n++ ) {
+                for( var n=0; n < Game.sounds.length; n++ ) {
                     //unfortunetly there is no isPlaying function/attribute :(
-                    if( sounds[ n ].currentTime != 0 )
+                    if( Game.sounds[ n ].currentTime != 0 )
                         //nor is there a end() function
-                        sounds[ n ].currentTime = 0; 
+                        Game.sounds[ n ].currentTime = 0; 
                         //gotta pause it or else it will just play from start
-                        sounds[ n ].pause();
+                        Game.sounds[ n ].pause();
                 }
              
             } else {
-                
-                background_audio.play();
-                
+                Game.background_audio.play();
             }
         }
 
+        function toggleOutline() {
+            if( Game.start ) {
+                Game.draw_outline = !Game.draw_outline;
+                player.draw = true;
+            }
+        }
     </script>
     
     <script type="text/javascript" src="js/map.js"></script>  

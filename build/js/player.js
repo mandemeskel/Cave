@@ -13,11 +13,11 @@ var player = {
 		    pos_real: function() { //regular position
 				var temp = new Vector( 0, 0 );
 				temp.copy( this.pos );
-				temp.subV( offset );
+				temp.subV( Game.draw_offset );
 				return temp;
 		    },
 		    setPos: function( v ) { //this actually sets the offset but who cares
-		    	offset.set( player.pos.x - v.x, 
+		    	Game.draw_offset.set( player.pos.x - v.x, 
 								player.pos.y - v.y );
 		    },
             speed: 2,
@@ -111,7 +111,7 @@ var player = {
 					  if( player_ray.cast() ) {
 					  	
 					  	this.falling = false;
-					  	offset.y -= ( player_ray.far );
+					  	Game.draw_offset.y -= ( player_ray.far );
 					  	
 					  	if( ( this.pos_real().y - this.fallfrom ) >= 200 &&
 					  	 this.fallfrom > 0 ) {
@@ -127,7 +127,7 @@ var player = {
 					  	
 					  } else {
 					  	
-					  	offset.y -= this.vy;
+					  	Game.draw_offset.y -= this.vy;
 					  	//scream( 3 );
 					  	
 					  }
@@ -207,9 +207,9 @@ var player = {
 														this.speed * this.jumpvar );
 				
 				if( player_ray.cast() ) {
-					offset.y += ( player_ray.far ); 
+					Game.draw_offset.y += ( player_ray.far ); 
 				} else {
-					offset.y += this.speed * this.jumpvar;
+					Game.draw_offset.y += this.speed * this.jumpvar;
 				}
 			},
 			buildCamp: function() {
@@ -243,7 +243,7 @@ var player = {
 				}
 			},
 			respawn: function() {
-				var closest, distance = this.pos_real().distanceTo( spawn_v );
+				var closest, distance = this.pos_real().distanceTo( Game.spawn_v );
 				
 				if( !this.camp ) return false;
 				
@@ -251,13 +251,13 @@ var player = {
 					
 					if( this.pos_real().distanceTo( this.camps[n] ) < distance ) {
 						closest = n;
-						distance = offset.distanceTo( this.camps[n] );
+						distance = Game.draw_offset.distanceTo( this.camps[n] );
 					}
 				}
 				
 				temp_v.copy( this.pos );
 				temp_v.subV( this.camps[closest] );
-				offset.copy( temp_v );
+				Game.draw_offset.copy( temp_v );
 				return true;
 				
 			},
@@ -269,19 +269,19 @@ var player = {
 							this.rappelling = false;
 							this.jump();
 						} else {
-							offset.y += this.speed;
+							Game.draw_offset.y += this.speed;
 						}
 					break;
 					case 65: //left
 						this.rappelling = false;
-						offset.x += this.speed;
+						Game.draw_offset.x += this.speed;
 					break;
 					case 83: //down
-						offset.y -= this.speed;
+						Game.draw_offset.y -= this.speed;
 					break;
 					case 68: //right
 						this.rappelling = false;
-						offset.x -= this.speed;
+						Game.draw_offset.x -= this.speed;
 					break;
 				}
 				
@@ -304,8 +304,6 @@ var player = {
 				this.a_offset -= 0.0001;
 			},
 			move: function() {
-
-				prev_offset.copy( offset );
 				
 				if(87 in keysDown) { //W key up, jump, start climbing up
 					if( canMove( this.bound( 1 ), _270,  this.speed ) ) {
@@ -314,7 +312,7 @@ var player = {
 						} else if( this.rappelling ) { 
 							this.rappell( 87 );	
 						} else {
-							offset.y += this.speed;
+							Game.draw_offset.y += this.speed;
 						}
 					}
 				}
@@ -324,7 +322,7 @@ var player = {
 					 	if( this.rappelling ) { 
 							this.rappell( 65 );	
 						} else {
-					 		offset.x += this.speed;
+					 		Game.draw_offset.x += this.speed;
 					 	}
 					 }
 				}
@@ -335,7 +333,7 @@ var player = {
 						if( this.rappelling ) { 
 							this.rappell( 83 );	
 						} else {
-							offset.y -= this.speed;
+							Game.draw_offset.y -= this.speed;
 						}
 					}
 				}
@@ -345,7 +343,7 @@ var player = {
 						if( this.rappelling ) { 
 							this.rappell( 68 );	
 						} else {
-							offset.x -= this.speed;
+							Game.draw_offset.x -= this.speed;
 						}
 					}
 				}

@@ -69,8 +69,8 @@ Ray.prototype.testAngle = function( n ) {
 	vector.set( x, y );
 	vector.addV( this.pos );
 		
-	for( var u, k = cast_range.start.y; k < cast_range.end.y; k++ ) {
-		for( u = cast_range.start.x; u < cast_range.end.x; u++ ) {
+	for( var u, k = Game.cast_range.start.y; k < Game.cast_range.end.y; k++ ) {
+		for( u = Game.cast_range.start.x; u < Game.cast_range.end.x; u++ ) {
 				
 			if( map[k][u] && 
 				checkCollision( new Vector( u * BOX_D, k * BOX_D ), vector) ) {
@@ -187,7 +187,6 @@ Ray.prototype.calcEndQ = function( q ) {
 var max_x, max_y;
 function checkCollision( box_v, v ) {
 	
-	//box_v.addV( offset );
 	max_x = box_v.x + BOX_D;
   	max_y = box_v.y + BOX_D;
   	
