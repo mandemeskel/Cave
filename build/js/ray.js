@@ -72,7 +72,7 @@ Ray.prototype.testAngle = function( n ) {
 	for( var u, k = Game.cast_range.start.y; k < Game.cast_range.end.y; k++ ) {
 		for( u = Game.cast_range.start.x; u < Game.cast_range.end.x; u++ ) {
 				
-			if( map[k][u] && 
+			if( Map.map[k][u] && 
 				checkCollision( new Vector( u * BOX_D, k * BOX_D ), vector) ) {
 				
 				this.far = n;
@@ -82,17 +82,7 @@ Ray.prototype.testAngle = function( n ) {
 				
 			}
 				
-			if( map[k][++u] && 
-				checkCollision( new Vector( u * BOX_D, k * BOX_D ), vector) ) {
-				
-				this.far = n;
-				this.end.copy( vector );
-				this.collision = true;
-				return true;
-				
-			}
-			
-			if( map[k][++u] && 
+			if( Map.map[k][++u] && 
 				checkCollision( new Vector( u * BOX_D, k * BOX_D ), vector) ) {
 				
 				this.far = n;
@@ -102,7 +92,7 @@ Ray.prototype.testAngle = function( n ) {
 				
 			}
 			
-			if( map[k][++u] && 
+			if( Map.map[k][++u] && 
 				checkCollision( new Vector( u * BOX_D, k * BOX_D ), vector) ) {
 				
 				this.far = n;
@@ -112,7 +102,17 @@ Ray.prototype.testAngle = function( n ) {
 				
 			}
 			
-			if( map[k][++u] && 
+			if( Map.map[k][++u] && 
+				checkCollision( new Vector( u * BOX_D, k * BOX_D ), vector) ) {
+				
+				this.far = n;
+				this.end.copy( vector );
+				this.collision = true;
+				return true;
+				
+			}
+			
+			if( Map.map[k][++u] && 
 				checkCollision( new Vector( u * BOX_D, k * BOX_D ), vector) ) {
 				
 				this.far = n;

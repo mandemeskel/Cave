@@ -35,7 +35,7 @@ var player = {
             vy: 0,
             climbing: false,
             falling: false,
-            fallfrom: map_h,
+            fallfrom: Map.map_h,
             ti: undefined, //initial time, start of fall 
             camp: false, //basically a checkpoint
             camps: [], //array of checkpoints
@@ -89,7 +89,7 @@ var player = {
 				} else if( this.falling && ( !left || !right ) ) {
 				
 					this.falling = false;
-					this.fallfrom = map_h;
+					this.fallfrom = Map.map_h;
 					this.ti = undefined;
 					this.vy = 0;
 				
@@ -97,7 +97,7 @@ var player = {
 				return this.falling;
 			},
             fall: function( time ) {
-				  if( this.pos_real().y < map_h-BOX_D ) {
+				  if( this.pos_real().y < Map.map_h-BOX_D ) {
 					  
 					  //start screaming
 					  //scream( 1 );

@@ -74,11 +74,6 @@
     <script type="text/javascript"> 
         var cnvs = document.createElement('canvas');
         var ctx = cnvs.getContext('2d');
-            
-        var map = [],
-            temp_map = [],
-            map_h, map_w, 
-            BOX_D = 30;
 
         cnvs.width = 1500;
         cnvs.height = 700;
@@ -155,6 +150,28 @@
         Vector.prototype.equals = function(v) {
             return ( this.x == v.x ) && ( this.y == v.y);
         };
+           
+        Vector.prototype.vectorIn = function( varray ) {
+            if( varray.length === 0 ) return false;
+            
+            for( var n = varray.length - 1; n >= 0; n-- ) {
+                if( varray[n].equals( this ) ) return true;
+            }
+            
+            return false;
+        };
+            
+        //checks if vector is in an array
+        function vectorIn( varray , v ) {
+    
+            if( varray.length === 0 ) return false;
+            
+            for( var n = varray.length - 1; n >= 0; n-- ) {
+                if( varray[n].equals( v ) ) return true;
+            }
+            
+            return false;
+        }
         
         //gets angle from mouse position, obj is the player
         function getAngle( v, mouse ){
@@ -293,6 +310,7 @@
                 player.draw = true;
             }
         }
+
     </script>
     
     <script type="text/javascript" src="js/map.js"></script>  

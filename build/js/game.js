@@ -36,14 +36,14 @@ var Game = {
         	
 			//setting up map
 			ctx.clearRect( 0, 0, cnvs.width, cnvs.height );
-			createMap( BOX_D );	
+			Map.createMap( BOX_D );	
 			
 			//setting up player
 			player.pos.copy( getSpawnVector() );
 		    player.color = "yellow";
 	    
 		//check if player spawned in area that is not enclosed
-	    } while( !checkMap( this.spawn_v ) ); 
+	    } while( !Map.checkMap( this.spawn_v ) ); 
 	    
 	    //reset player and map
 	    this.draw_offset.set( cnvs.width * 0.5, cnvs.height * 0.5 ),
@@ -94,7 +94,7 @@ var Game = {
 		 ctx.translate( this.draw_offset.x, this.draw_offset.y );
 		 
 		 if( this.draw_map )
-		 	drawMap( BOX_D );
+		 	Map.drawMap( BOX_D );
 		 
 		 if( this.draw_outline )
 		 	this.drawOutLine();
@@ -383,8 +383,8 @@ function getMapRange( v, distance ) {
 	//round so that we have an extra buffer of rows and collumnswd
 	x = Math.round( ( v.x + distance ) / BOX_D );
 	y = Math.round( ( v.y + distance ) / BOX_D );
-	end.x = x > size_x ? size_x : x;
-	end.y = y > size_y ? size_y : y;
+	end.x = x > Map.size_x ? Map.size_x : x;
+	end.y = y > Map.size_y ? Map.size_y : y;
 	
 	return { start: start, end: end };
 
@@ -395,12 +395,12 @@ function getMapRange( v, distance ) {
 function getSpawnVector() {
 	var walls = 0;
 	//ignore edge boxes that are adjacent to wall sorounding map
-	for( r = 1; r < size_y; r++ ) {
-    	for( c = 1; c < size_x; c++ ){
+	for( r = 1; r < Map.size_y; r++ ) {
+    	for( c = 1; c < Map.size_x; c++ ){
     	
-      		if( map[r][c] === TILE_FLOOR ) {
+      		if( Map.map[r][c] === Map.TILE_FLOOR ) {
       			
-      			if( map[r+1][c] === TILE_WALL ) {
+      			if( Map.map[r+1][c] === Map.TILE_WALL ) {
       				Game.spawn_box.set( (c * BOX_D), 
       							(r * BOX_D), BOX_D, 0 );
       				Game.spawn_v.set( c, r );
